@@ -20,12 +20,13 @@ Instead of sending JSON data and letting clients figure out how to display it, s
 
 ```html
 <!-- SSE Connection Wrapper (never gets replaced) -->
-<div hx-ext="sse" 
-     sse-connect="/events" 
-     sse-swap="content-updated"
-     hx-target="#content">
-  <div id="content">
-    <!-- This content gets swapped -->
+<div hx-ext="sse" sse-connect="/events?originator={{.OriginatorID}}">
+  <!-- Each element listens for its specific update event -->
+  <div id="item-1" sse-swap="item-1-updated" hx-swap="innerHTML">
+    <input type="checkbox" hx-post="/toggle/1" hx-swap="none">
+  </div>
+  <div id="item-2" sse-swap="item-2-updated" hx-swap="innerHTML">
+    <input type="checkbox" hx-post="/toggle/2" hx-swap="none">
   </div>
 </div>
 ```
@@ -42,19 +43,20 @@ type Hub struct {
 }
 
 // Handle user action
-func actionHandler(c echo.Context) error {
-    // 1. Get originator ID
+func toggleHandler(c echo.Context) error {
+    // 1. Get originator ID and item ID
     originatorID := c.Request().Header.Get("X-Originator-ID")
+    itemID := c.Param("id")
     
-    // 2. Process business logic
-    updateData()
+    // 2. Update state
+    newState := toggleItem(itemID)
     
-    // 3. Generate HTML for broadcast
-    html := renderUpdatedContent()
+    // 3. Generate HTML for just this item
+    html := renderSingleItem(itemID, newState)
     
-    // 4. Broadcast to all except originator
+    // 4. Broadcast only the affected item
     hub.broadcast <- Event{
-        Name:      "content-updated",
+        Name:      fmt.Sprintf("item-%s-updated", itemID),
         Data:      html,
         ExcludeID: originatorID,
     }
@@ -135,22 +137,29 @@ See [originator-filtering.md](originator-filtering.md) for detailed implementati
 - Complex client-side interactions
 - Games or real-time graphics
 
-## Semantic Component Separation
+## Targeted Updates Pattern
 
-**HTMX Components** (for action originators):
-- Complete interaction responses
-- Include toasts, modals, navigation
-- Handle full user workflow
+Instead of replacing entire sections, broadcast minimal HTML for specific elements:
 
-**SSE Components** (for broadcasts):
-- Pure content updates
-- No side effects or notifications
-- Just the current state representation
+**Benefits**:
+- **Efficient**: Only affected elements are sent (50 bytes vs 2KB)
+- **Performant**: Browser updates single DOM node, not entire sections
+- **Scalable**: Works with thousands of items without performance degradation
+
+**Implementation**:
+```html
+<!-- Each item has its own SSE event listener -->
+<div id="checkbox-1" sse-swap="checkbox-1-updated" hx-swap="innerHTML">
+  <input type="checkbox" ...>
+</div>
+```
 
 ```go
-// Different templates for different purposes
-htmxResponse := CompleteInteractionResponse(data, toasts, modals)
-sseContent := PureDataRepresentation(data)
+// Broadcast only what changed
+hub.broadcast <- Event{
+    Name: "checkbox-1-updated",
+    Data: "<input type=\"checkbox\" checked ...>",
+}
 ```
 
 ## Architecture Components

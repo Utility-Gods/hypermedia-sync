@@ -83,20 +83,22 @@ for connID, conn := range h.connections {
 ## Code Example
 
 ```go
-// Handle user action
+// Handle checkbox toggle
 func toggleHandler(c echo.Context) error {
     // Get originator ID from request
     originatorID := c.Request().Header.Get("X-Originator-ID")
+    id := c.Param("id")
     
     // Update state
-    updateCheckbox(id)
+    newState := toggleCheckbox(id)
     
-    // Generate HTML
-    html := generateCheckboxGridHTML()
+    // Generate HTML for just this checkbox
+    html := fmt.Sprintf(`<input type="checkbox" id="cb-%s" %s ...>`, 
+        id, checkedAttr(newState))
     
-    // Broadcast to all except originator
+    // Broadcast only the affected element
     hub.broadcast <- Event{
-        Name:      "content-updated",
+        Name:      fmt.Sprintf("checkbox-%s-updated", id),
         Data:      html,
         ExcludeID: originatorID,
     }
@@ -105,5 +107,22 @@ func toggleHandler(c echo.Context) error {
     return c.NoContent(204)
 }
 ```
+
+## Targeted Updates
+
+The pattern supports efficient targeted updates:
+
+```html
+<!-- Each element listens for its specific event -->
+<div id="checkbox-1" sse-swap="checkbox-1-updated" hx-swap="innerHTML">
+  <input type="checkbox" hx-post="/toggle/1" hx-swap="none">
+  <label>Checkbox 1</label>
+</div>
+```
+
+This approach:
+- Sends only the changed element (~50 bytes)
+- Updates only the specific DOM node
+- Scales to thousands of elements efficiently
 
 This approach maintains pure hypermedia principles while providing clean originator filtering.

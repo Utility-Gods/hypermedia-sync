@@ -116,6 +116,17 @@ func generateCheckboxGridHTML() string {
 	return gridHTML
 }
 
+// generateSingleCheckboxHTML creates HTML for a single checkbox
+func generateSingleCheckboxHTML(id int, checked bool) string {
+	checkedAttr := ""
+	if checked {
+		checkedAttr = "checked"
+	}
+	
+	return fmt.Sprintf(`<input type="checkbox" id="cb-%d" %s hx-post="/toggle/%d" hx-swap="none"><label for="cb-%d">Checkbox %d</label>`, 
+		id, checkedAttr, id, id, id)
+}
+
 func main() {
 	// Initialize checkboxes
 	for i := 1; i <= 10; i++ {
@@ -234,12 +245,12 @@ func indexHandler(c echo.Context) error {
         <!-- SSE Connection Wrapper - This element stays, only inner content gets replaced -->
         <div hx-ext="sse" 
              sse-connect="/events?originator={{.OriginatorID}}" 
-             sse-swap="team-updated"
-             hx-target="#team-section"
              id="sse-wrapper">
             <div class="checkbox-grid" id="team-section">
                 {{range .Checkboxes}}
-                <div class="checkbox-item" id="checkbox-{{.ID}}">
+                <div class="checkbox-item" id="checkbox-{{.ID}}" 
+                     sse-swap="checkbox-{{.ID}}-updated"
+                     hx-swap="innerHTML">
                     <input type="checkbox" 
                            id="cb-{{.ID}}" 
                            {{if .Checked}}checked{{end}}
@@ -381,43 +392,17 @@ func toggleHandler(c echo.Context) error {
 	// Toggle checkbox state
 	mu.Lock()
 	checkboxes[id] = !checkboxes[id]
+	newState := checkboxes[id]
 	mu.Unlock()
 
-	// Get fresh data for all checkboxes for both API response and SSE broadcast
-	mu.RLock()
-	var checkboxData []CheckboxData
-	for i := 1; i <= 10; i++ {
-		checkboxData = append(checkboxData, CheckboxData{ID: i, Checked: checkboxes[i]})
-	}
-	mu.RUnlock()
-
-	// Render complete checkbox grid HTML for SSE
-	sseHTML := ""
-	for _, cb := range checkboxData {
-		sseHTML += fmt.Sprintf(`<div class="checkbox-item" id="checkbox-%d">
-    <input type="checkbox" 
-           id="cb-%d" 
-           %s
-           hx-post="/toggle/%d"
-           hx-swap="none">
-    <label for="cb-%d">Checkbox %d</label>
-</div>`, cb.ID, cb.ID,
-			func() string {
-				if cb.Checked {
-					return "checked"
-				}
-				return ""
-			}(), cb.ID, cb.ID, cb.ID, cb.ID)
-	}
-
-	// Generate complete checkbox grid HTML using helper function
-	gridHTML := generateCheckboxGridHTML()
+	// Generate HTML for just this checkbox
+	checkboxHTML := generateSingleCheckboxHTML(id, newState)
 
 	fmt.Printf("Broadcasting checkbox-%d update to all except originator: %s\n", id, originatorID)
-	// Broadcast to all connections except the originator
+	// Broadcast only the affected checkbox
 	hub.broadcast <- Event{
-		Name:      "team-updated",
-		Data:      gridHTML,
+		Name:      fmt.Sprintf("checkbox-%d-updated", id),
+		Data:      checkboxHTML,
 		ExcludeID: originatorID,
 	}
 
