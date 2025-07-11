@@ -126,8 +126,8 @@ func generateSingleCheckboxHTML(id int, checked bool) string {
 		checkedAttr = "checked"
 	}
 
-	return fmt.Sprintf(`<input type="checkbox" id="cb-%d" %s hx-post="/toggle/%d" hx-swap="none"><label for="cb-%d"> %d</label>`,
-		id, checkedAttr, id, id, id)
+	return fmt.Sprintf(`<input type="checkbox" id="cb-%d" %s hx-post="/toggle/%d" hx-swap="none"><span>%d</span>`,
+		id, checkedAttr, id, id)
 }
 
 func main() {
