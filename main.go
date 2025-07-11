@@ -27,6 +27,7 @@ type CheckboxData struct {
 // SSE Hub for managing connections
 type Hub struct {
 	connections map[string]*Connection
+	topics      map[string]map[string]*Connection // topic -> connectionID -> connection
 	broadcast   chan Event
 	register    chan *Connection
 	unregister  chan *Connection
@@ -35,18 +36,21 @@ type Hub struct {
 
 type Connection struct {
 	ID     string
+	Topics []string
 	Writer http.ResponseWriter
 	Done   chan struct{}
 }
 
 type Event struct {
-	Name string
-	Data string
+	Name   string
+	Data   string
+	Topics []string // Topics to broadcast to
 }
 
 func NewHub() *Hub {
 	return &Hub{
 		connections: make(map[string]*Connection),
+		topics:      make(map[string]map[string]*Connection),
 		broadcast:   make(chan Event, 100),
 		register:    make(chan *Connection),
 		unregister:  make(chan *Connection),
@@ -59,18 +63,84 @@ func (h *Hub) Run() {
 		case conn := <-h.register:
 			h.connMu.Lock()
 			h.connections[conn.ID] = conn
+			// Register connection to its topics
+			for _, topic := range conn.Topics {
+				if h.topics[topic] == nil {
+					h.topics[topic] = make(map[string]*Connection)
+				}
+				h.topics[topic][conn.ID] = conn
+			}
 			h.connMu.Unlock()
-			fmt.Printf("Client connected: %s (total: %d)\n", conn.ID, len(h.connections))
+			fmt.Printf("Client connected: %s with topics %v (total: %d)\n", conn.ID, conn.Topics, len(h.connections))
 
 		case conn := <-h.unregister:
 			h.connMu.Lock()
 			delete(h.connections, conn.ID)
+			// Remove connection from all topics
+			for _, topic := range conn.Topics {
+				if h.topics[topic] != nil {
+					delete(h.topics[topic], conn.ID)
+					if len(h.topics[topic]) == 0 {
+						delete(h.topics, topic)
+					}
+				}
+			}
 			h.connMu.Unlock()
 			fmt.Printf("Client disconnected: %s (total: %d)\n", conn.ID, len(h.connections))
 
 		case event := <-h.broadcast:
 			h.connMu.RLock()
-			for _, conn := range h.connections {
+			// Broadcast to connections subscribed to the event's topics
+			sentTo := make(map[string]bool)
+			for _, topic := range event.Topics {
+				if topicConns, exists := h.topics[topic]; exists {
+					for connID, conn := range topicConns {
+						if !sentTo[connID] {
+							sentTo[connID] = true
+							go func(c *Connection) {
+								defer func() {
+									if r := recover(); r != nil {
+										fmt.Printf("Error broadcasting to connection: %v\n", r)
+									}
+								}()
+								// Format SSE event data properly - replace newlines with data: prefix
+								eventData := strings.ReplaceAll(event.Data, "\n", "\ndata: ")
+								fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", event.Name, eventData)
+								if flusher, ok := c.Writer.(http.Flusher); ok {
+									flusher.Flush()
+								}
+							}(conn)
+						}
+					}
+				}
+			}
+			h.connMu.RUnlock()
+		}
+	}
+}
+
+
+var hub = NewHub()
+
+// BroadcastToAllExcept sends an event to all connections except those subscribed to excludeTopic
+func (h *Hub) BroadcastToAllExcept(event Event, excludeTopic string) {
+	// Create a new event that goes to "all" topic but excludes connections that have excludeTopic
+	h.connMu.RLock()
+	defer h.connMu.RUnlock()
+	
+	// Get all connections subscribed to "all" topic
+	if allConns, exists := h.topics["all"]; exists {
+		for _, conn := range allConns {
+			// Check if this connection is also subscribed to the exclude topic
+			shouldSend := true
+			for _, topic := range conn.Topics {
+				if topic == excludeTopic {
+					shouldSend = false
+					break
+				}
+			}
+			
+			if shouldSend {
 				go func(c *Connection) {
 					defer func() {
 						if r := recover(); r != nil {
@@ -85,47 +155,23 @@ func (h *Hub) Run() {
 					}
 				}(conn)
 			}
-			h.connMu.RUnlock()
 		}
 	}
 }
-
-func (h *Hub) BroadcastExcluding(event Event, excludeID string) {
-	h.connMu.RLock()
-	defer h.connMu.RUnlock()
-	
-	for connID, conn := range h.connections {
-		if connID != excludeID {
-			go func(c *Connection) {
-				defer func() {
-					if r := recover(); r != nil {
-						fmt.Printf("Error broadcasting to connection: %v\n", r)
-					}
-				}()
-				fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", event.Name, event.Data)
-				if flusher, ok := c.Writer.(http.Flusher); ok {
-					flusher.Flush()
-				}
-			}(conn)
-		}
-	}
-}
-
-var hub = NewHub()
 
 // generateCheckboxGridHTML creates the complete checkbox grid HTML
 func generateCheckboxGridHTML() string {
 	mu.RLock()
 	defer mu.RUnlock()
-	
+
 	var gridHTML string
 	for i := 1; i <= 10; i++ {
 		checked := ""
 		if checkboxes[i] {
 			checked = "checked"
 		}
-		
-		gridHTML += fmt.Sprintf(`<div class="checkbox-item" id="checkbox-%d"><input type="checkbox" id="cb-%d" %s hx-post="/toggle/%d" hx-target="#team-section" hx-swap="innerHTML"><label for="cb-%d">Checkbox %d</label></div>`, i, i, checked, i, i, i)
+
+		gridHTML += fmt.Sprintf(`<div class="checkbox-item" id="checkbox-%d"><input type="checkbox" id="cb-%d" %s hx-post="/toggle/%d"  hx-swap="none"><label for="cb-%d">Checkbox %d</label></div>`, i, i, checked, i, i, i)
 	}
 	return gridHTML
 }
@@ -139,7 +185,6 @@ func main() {
 	go hub.Run()
 
 	e := echo.New()
-	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
 
@@ -247,10 +292,7 @@ func indexHandler(c echo.Context) error {
         </div>
 
         <!-- SSE Connection Wrapper - This element stays, only inner content gets replaced -->
-        <div hx-ext="sse" 
-             sse-connect="/events" 
-             sse-swap="team-updated"
-             hx-target="#team-section">
+        <div id="sse-wrapper">
             <div class="checkbox-grid" id="team-section">
                 {{range .Checkboxes}}
                 <div class="checkbox-item" id="checkbox-{{.ID}}">
@@ -258,8 +300,7 @@ func indexHandler(c echo.Context) error {
                            id="cb-{{.ID}}" 
                            {{if .Checked}}checked{{end}}
                            hx-post="/toggle/{{.ID}}"
-                           hx-target="#team-section"
-                           hx-swap="innerHTML">
+                           hx-swap="none">
                     <label for="cb-{{.ID}}">Checkbox {{.ID}}</label>
                 </div>
                 {{end}}
@@ -286,15 +327,6 @@ func indexHandler(c echo.Context) error {
             evt.detail.headers['X-Originator-ID'] = window.originatorId;
         });
 
-        // Update SSE connection URL to include originator ID
-        document.addEventListener('DOMContentLoaded', function() {
-            const sseElement = document.querySelector('[hx-ext="sse"]');
-            if (sseElement) {
-                const currentConnect = sseElement.getAttribute('sse-connect');
-                sseElement.setAttribute('sse-connect', currentConnect + '?originator=' + window.originatorId);
-            }
-        });
-
         // Update checked count on page updates
         document.addEventListener('htmx:afterSwap', function(evt) {
             updateCheckedCount();
@@ -307,6 +339,21 @@ func indexHandler(c echo.Context) error {
                 countElement.textContent = checked;
             }
         }
+
+        // Set up SSE connection after DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            const sseWrapper = document.getElementById('sse-wrapper');
+            if (sseWrapper) {
+                // Set HTMX SSE attributes
+                sseWrapper.setAttribute('hx-ext', 'sse');
+                sseWrapper.setAttribute('sse-connect', '/events?topics=all,' + window.originatorId);
+                sseWrapper.setAttribute('sse-swap', 'team-updated');
+                sseWrapper.setAttribute('hx-target', '#team-section');
+                
+                // Initialize HTMX on the element
+                htmx.process(sseWrapper);
+            }
+        });
 
         // Initial count
         updateCheckedCount();
@@ -349,16 +396,31 @@ func sseHandler(c echo.Context) error {
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	// Get originator ID from query params or generate one
-	originatorID := c.QueryParam("originator")
-	if originatorID == "" {
-		originatorID = fmt.Sprintf("sse-%d", len(hub.connections))
+	// Get topics from query params
+	topicsParam := c.QueryParam("topics")
+	var topics []string
+	if topicsParam != "" {
+		topics = strings.Split(topicsParam, ",")
 	}
+	
+	// Generate connection ID
+	hub.connMu.RLock()
+	connCount := len(hub.connections)
+	hub.connMu.RUnlock()
+	connID := fmt.Sprintf("sse-%d", connCount)
+	
+	fmt.Printf("SSE Handler - Topics: %v, Connection ID: %s\n", topics, connID)
 
 	conn := &Connection{
-		ID:     originatorID,
+		ID:     connID,
+		Topics: topics,
 		Writer: w,
 		Done:   make(chan struct{}),
+	}
+
+	// Flush headers immediately to establish connection
+	if flusher, ok := w.Writer.(http.Flusher); ok {
+		flusher.Flush()
 	}
 
 	hub.register <- conn
@@ -407,10 +469,9 @@ func toggleHandler(c echo.Context) error {
            id="cb-%d" 
            %s
            hx-post="/toggle/%d"
-           hx-target="#checkbox-grid"
-           hx-swap="innerHTML">
+           hx-swap="none">
     <label for="cb-%d">Checkbox %d</label>
-</div>`, cb.ID, cb.ID, 
+</div>`, cb.ID, cb.ID,
 			func() string {
 				if cb.Checked {
 					return "checked"
@@ -421,22 +482,13 @@ func toggleHandler(c echo.Context) error {
 
 	// Generate complete checkbox grid HTML using helper function
 	gridHTML := generateCheckboxGridHTML()
-	fmt.Printf("Generated gridHTML: %s\n", gridHTML)
 
-	// Broadcast to all other connections (exclude originator) using single event name
-	if originatorID != "" {
-		fmt.Printf("Broadcasting checkbox-%d update, excluding originator: %s\n", id, originatorID)
-		hub.BroadcastExcluding(Event{
-			Name: "team-updated",
-			Data: gridHTML,
-		}, originatorID)
-	} else {
-		fmt.Printf("Broadcasting checkbox-%d update to all connections (no originator ID)\n", id)
-		hub.broadcast <- Event{
-			Name: "team-updated",
-			Data: gridHTML,
-		}
-	}
+	fmt.Printf("Broadcasting checkbox-%d update to all except originator: %s\n", id, originatorID)
+	// Broadcast to all connections except the originator
+	hub.BroadcastToAllExcept(Event{
+		Name: "team-updated",
+		Data: gridHTML,
+	}, originatorID)
 
 	// Return updated HTML to originator (HTMX response)
 	if c.Request().Header.Get("HX-Request") == "true" {
