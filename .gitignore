@@ -1,0 +1,9 @@
+# Go binary
+packages/go-htmx/main
+packages/go-htmx/hypermedia-sync-go
+
+# Environment
+.env
+
+# OS
+.DS_Store

@@ -4,7 +4,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a conceptual repository for demonstrating **Hypermedia-Driven Real-Time Synchronization with SSE + HTMX**. The project is currently in the documentation phase, focusing on architectural patterns and implementation strategies.
+This is a repository for demonstrating **Hypermedia-Driven Real-Time Synchronization with SSE + HTMX** across different technology stacks. The project showcases implementations using various frameworks while maintaining HTMX as the constant client-side driver.
+
+## Current Implementations
+
+1. **go-htmx**: Go + Echo framework implementation (complete)
+   - Full SSE support with real-time updates
+   - Dark theme with orange/navy color scheme
+   - 10,000 checkbox demo
+
+## Lessons Learned
+
+- **Cloudflare Workers Limitations**: SSE doesn't work well with Workers due to request duration limits and I/O isolation. Workers are designed for short-lived requests, not long-running connections.
+- **Alternative Approaches**: For edge deployments, consider polling, WebSockets with Durable Objects, or external real-time services.
+
 
 ## Architecture Philosophy
 
@@ -60,14 +73,13 @@ Page Component
 
 ## Development Notes
 
-- This is currently a documentation-only repository with no executable code
+- Each package is a complete, runnable implementation
 - The `docs/overview.md` contains the complete architectural specification
-- Implementation examples are provided in Go but the pattern is language-agnostic
+- The pattern is language-agnostic and can be implemented in any server framework
 - Focus on HTML as the universal interface for both initial loads and real-time updates
 
-## Future Implementation
+## When Implementing New Stacks
 
-When implementing this pattern:
 1. Set up organization-scoped SSE hubs
 2. Implement dual response handlers (HTMX + SSE)
 3. Create semantic template separation (*Updated vs *SSE)
