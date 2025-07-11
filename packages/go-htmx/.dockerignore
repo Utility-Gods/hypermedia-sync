@@ -1,0 +1,11 @@
+# flyctl launch added from .gitignore
+# Binary
+**/main
+**/hypermedia-sync-go
+
+# Environment
+**/.env
+
+# macOS
+**/.DS_Store
+fly.toml
