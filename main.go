@@ -421,10 +421,6 @@ func toggleHandler(c echo.Context) error {
 		ExcludeID: originatorID,
 	}
 
-	// Return updated HTML to originator (HTMX response)
-	if c.Request().Header.Get("HX-Request") == "true" {
-		return c.HTML(200, gridHTML)
-	}
-
-	return c.Redirect(302, "/")
+	// Return no content since we're using hx-swap="none"
+	return c.NoContent(204)
 }
