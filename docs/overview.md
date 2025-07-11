@@ -9,11 +9,11 @@ Instead of sending JSON data and letting clients figure out how to display it, s
 
 ## How It Works
 
-1. **User Action**: Click button in Browser A
+1. **User Action**: Click checkbox in Browser A
 2. **Server Processing**: Handle business logic, generate fresh HTML
-3. **Dual Response**:
-   - Send updated HTML to Browser A (HTMX response)
-   - Broadcast same HTML to all other browsers (SSE event)
+3. **Response Strategy**:
+   - Return 204 No Content to Browser A (with `hx-swap="none"`)
+   - Broadcast HTML to all other browsers (SSE event)
 4. **Result**: All browsers show identical UI instantly
 
 ## Core Pattern
@@ -43,20 +43,24 @@ type Hub struct {
 
 // Handle user action
 func actionHandler(c echo.Context) error {
-    // 1. Process business logic
+    // 1. Get originator ID
+    originatorID := c.Request().Header.Get("X-Originator-ID")
+    
+    // 2. Process business logic
     updateData()
     
-    // 2. Generate HTML
+    // 3. Generate HTML for broadcast
     html := renderUpdatedContent()
     
-    // 3. Broadcast to SSE connections
+    // 4. Broadcast to all except originator
     hub.broadcast <- Event{
-        Name: "content-updated",
-        Data: html,
+        Name:      "content-updated",
+        Data:      html,
+        ExcludeID: originatorID,
     }
     
-    // 4. Return HTML to originator
-    return c.HTML(200, html)
+    // 5. Return no content (using hx-swap="none")
+    return c.NoContent(204)
 }
 ```
 

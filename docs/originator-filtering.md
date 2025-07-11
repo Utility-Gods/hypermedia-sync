@@ -69,9 +69,9 @@ for connID, conn := range h.connections {
 2. **SSE Connect**: Browser connects with `?originator={id}`
 3. **User Action**: HTMX sends request with `X-Originator-ID` header
 4. **Server Response**: 
-   - Returns HTML to originator via HTMX response
-   - Broadcasts to all SSE connections except originator
-5. **Result**: No duplicate updates
+   - Returns 204 No Content to originator (with `hx-swap="none"`)
+   - Broadcasts HTML to all SSE connections except originator
+5. **Result**: Clean updates without duplicates or unnecessary data transfer
 
 ## Benefits
 
@@ -101,8 +101,8 @@ func toggleHandler(c echo.Context) error {
         ExcludeID: originatorID,
     }
     
-    // Return HTML to originator
-    return c.HTML(200, html)
+    // Return no content (hx-swap="none")
+    return c.NoContent(204)
 }
 ```
 
