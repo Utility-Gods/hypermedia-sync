@@ -63,13 +63,11 @@ func (h *Hub) Run() {
 			h.connMu.Lock()
 			h.connections[conn.ID] = conn
 			h.connMu.Unlock()
-			fmt.Printf("Client connected: %s (total: %d)\n", conn.ID, len(h.connections))
 
 		case conn := <-h.unregister:
 			h.connMu.Lock()
 			delete(h.connections, conn.ID)
 			h.connMu.Unlock()
-			fmt.Printf("Client disconnected: %s (total: %d)\n", conn.ID, len(h.connections))
 
 		case event := <-h.broadcast:
 			h.connMu.RLock()
@@ -98,23 +96,6 @@ func (h *Hub) Run() {
 
 
 var hub = NewHub()
-
-// generateCheckboxGridHTML creates the complete checkbox grid HTML
-func generateCheckboxGridHTML() string {
-	mu.RLock()
-	defer mu.RUnlock()
-
-	var gridHTML string
-	for i := 1; i <= 10; i++ {
-		checked := ""
-		if checkboxes[i] {
-			checked = "checked"
-		}
-
-		gridHTML += fmt.Sprintf(`<div class="checkbox-item" id="checkbox-%d"><input type="checkbox" id="cb-%d" %s hx-post="/toggle/%d"  hx-swap="none"><label for="cb-%d">Checkbox %d</label></div>`, i, i, checked, i, i, i)
-	}
-	return gridHTML
-}
 
 // generateSingleCheckboxHTML creates HTML for a single checkbox
 func generateSingleCheckboxHTML(id int, checked bool) string {
@@ -350,8 +331,6 @@ func sseHandler(c echo.Context) error {
 		hub.connMu.RUnlock()
 		originatorID = fmt.Sprintf("sse-%d", connCount)
 	}
-	
-	fmt.Printf("SSE Handler - Connection ID: %s\n", originatorID)
 
 	conn := &Connection{
 		ID:     originatorID,
@@ -397,8 +376,6 @@ func toggleHandler(c echo.Context) error {
 
 	// Generate HTML for just this checkbox
 	checkboxHTML := generateSingleCheckboxHTML(id, newState)
-
-	fmt.Printf("Broadcasting checkbox-%d update to all except originator: %s\n", id, originatorID)
 	// Broadcast only the affected checkbox
 	hub.broadcast <- Event{
 		Name:      fmt.Sprintf("checkbox-%d-updated", id),
