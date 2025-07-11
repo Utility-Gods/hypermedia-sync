@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a repository for demonstrating **Hypermedia-Driven Real-Time Synchronization with SSE + HTMX** across different technology stacks. The project showcases implementations using various frameworks while maintaining HTMX as the constant client-side driver.
 
+## Core Understanding
+
+For a comprehensive understanding of the pattern and architecture, see [docs/understanding.md](docs/understanding.md). This document merges all architectural knowledge and implementation details.
+
 ## Current Implementations
 
 1. **go-htmx**: Go + Echo framework implementation (complete)
@@ -74,7 +78,6 @@ Page Component
 ## Development Notes
 
 - Each package is a complete, runnable implementation
-- The `docs/overview.md` contains the complete architectural specification
 - The pattern is language-agnostic and can be implemented in any server framework
 - Focus on HTML as the universal interface for both initial loads and real-time updates
 

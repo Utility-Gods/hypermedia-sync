@@ -165,177 +165,7 @@ func indexHandler(c echo.Context) error {
     <script src="static/js/htmx.js"></script>
     <script src="static/js/sse.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            /* Primary Colors - Vibrant Orange/Red */
-            --color-primary-50: #fff7ed;
-            --color-primary-100: #ffedd5;
-            --color-primary-200: #fed7aa;
-            --color-primary-300: #fdba74;
-            --color-primary-400: #fb923c;
-            --color-primary-500: #f97316;
-            --color-primary-600: #f54a00;
-            --color-primary-700: #c2410c;
-            --color-primary-800: #9a3412;
-            --color-primary-900: #7c2d12;
-
-            /* Secondary Colors - Very Dark Navy Blue */
-            --color-secondary-50: #f8fafc;
-            --color-secondary-100: #f1f5f9;
-            --color-secondary-200: #e2e8f0;
-            --color-secondary-300: #cbd5e1;
-            --color-secondary-400: #94a3b8;
-            --color-secondary-500: #64748b;
-            --color-secondary-600: #475569;
-            --color-secondary-700: #334155;
-            --color-secondary-800: #1e293b;
-            --color-secondary-900: #0f172a;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body { 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-            background: linear-gradient(135deg, var(--color-secondary-900) 0%, var(--color-secondary-800) 100%);
-            min-height: 100vh;
-            color: var(--color-secondary-50);
-        }
-        
-        .hero {
-            text-align: center;
-            padding: 2rem 1rem 3rem;
-            color: white;
-        }
-        
-        .hero h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            background: linear-gradient(135deg, var(--color-primary-400) 0%, var(--color-primary-600) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .hero .subtitle {
-            font-size: 1.25rem;
-            opacity: 0.9;
-            margin-bottom: 2rem;
-            font-weight: 300;
-            color: var(--color-secondary-200);
-        }
-        
-        .github-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            background: var(--color-primary-600);
-            color: white;
-            text-decoration: none;
-            border-radius: 2rem;
-            font-weight: 600;
-            transition: all 0.2s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-        
-        .github-link:hover {
-            background: var(--color-primary-700);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
-        }
-        
-        .checkbox-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
-        
-        .checkbox-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 0.5rem;
-            max-height: 60vh;
-            overflow-y: auto;
-            padding: 1.5rem;
-            background: var(--color-secondary-800);
-            border-radius: 1rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            border: 1px solid var(--color-secondary-700);
-        }
-        
-        .checkbox-grid::-webkit-scrollbar {
-            width: 12px;
-        }
-        
-        .checkbox-grid::-webkit-scrollbar-track {
-            background: var(--color-secondary-700);
-            border-radius: 10px;
-        }
-        
-        .checkbox-grid::-webkit-scrollbar-thumb {
-            background: var(--color-primary-600);
-            border-radius: 10px;
-        }
-        
-        .checkbox-grid::-webkit-scrollbar-thumb:hover {
-            background: var(--color-primary-700);
-        }
-        
-        .checkbox-item {
-            display: flex;
-            align-items: center;
-            padding: 0.5rem;
-            background: var(--color-secondary-900);
-            border-radius: 0.5rem;
-            transition: all 0.2s;
-            border: 1px solid var(--color-secondary-700);
-        }
-        
-        .checkbox-item:hover {
-            background: var(--color-secondary-800);
-            transform: scale(1.05);
-            border-color: var(--color-primary-600);
-            box-shadow: 0 0 0 2px rgba(245, 74, 0, 0.2);
-        }
-        
-        .checkbox-item input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            margin-right: 0.5rem;
-            cursor: pointer;
-            accent-color: var(--color-primary-600);
-        }
-        
-        .checkbox-item label {
-            cursor: pointer;
-            font-size: 0.875rem;
-            color: var(--color-secondary-200);
-            user-select: none;
-        }
-        
-        .footer {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: var(--color-secondary-400);
-        }
-        
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2rem;
-            }
-            
-            .checkbox-grid {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-                max-height: 50vh;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="static/css/styles.css">
 </head>
 <body>
     <div class="hero">
@@ -357,7 +187,7 @@ func indexHandler(c echo.Context) error {
              id="sse-wrapper">
             <div class="checkbox-grid" id="team-section">
                 {{range .Checkboxes}}
-                <div class="checkbox-item" id="checkbox-{{.ID}}" 
+                <label for="cb-{{.ID}}" class="checkbox-item" id="checkbox-{{.ID}}"
                      sse-swap="checkbox-{{.ID}}-updated"
                      hx-swap="innerHTML">
                     <input type="checkbox" 
@@ -365,8 +195,8 @@ func indexHandler(c echo.Context) error {
                            {{if .Checked}}checked{{end}}
                            hx-post="/toggle/{{.ID}}"
                            hx-swap="none">
-                    <label for="cb-{{.ID}}">{{.ID}}</label>
-                </div>
+                    <span>{{.ID}}</span>
+                </label>
                 {{end}}
             </div>
         </div>
