@@ -110,7 +110,7 @@ func generateSingleCheckboxHTML(id int, checked bool) string {
 
 func main() {
 	// Initialize checkboxes
-	for i := 1; i <= 10; i++ {
+	for i := 1; i <= 10000; i++ {
 		checkboxes[i] = false
 	}
 
@@ -138,92 +138,230 @@ func indexHandler(c echo.Context) error {
 	tmpl := `<!DOCTYPE html>
 <html>
 <head>
-    <title>10,000 Checkboxes - Hypermedia Sync Demo</title>
+    <title>One Million Checkboxes - Hypermedia Sync Experiment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="/static/js/htmx.js"></script>
     <script src="/static/js/sse.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body { 
-            font-family: Arial, sans-serif; 
-            margin: 20px;
-            background-color: #f5f5f5;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #1a202c;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .header {
+        
+        .hero {
             text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background-color: #007bff;
+            padding: 3rem 1rem;
             color: white;
-            border-radius: 8px;
         }
+        
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .hero .subtitle {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+            font-weight: 300;
+        }
+        
+        .experiment-info {
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .experiment-info p {
+            font-size: 1.125rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+        
+        .github-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 2rem;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .github-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
         .stats {
             text-align: center;
-            margin-bottom: 20px;
-            padding: 15px;
-            background-color: #e9ecef;
-            border-radius: 8px;
+            margin-bottom: 2rem;
         }
+        
+        .stats-card {
+            display: inline-block;
+            background: white;
+            padding: 1.5rem 3rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .stats-card .number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .stats-card .label {
+            font-size: 0.875rem;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .checkbox-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
         .checkbox-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 5px;
-            max-height: 600px;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 0.5rem;
+            max-height: 60vh;
             overflow-y: auto;
-            border: 1px solid #ddd;
-            padding: 20px;
-            border-radius: 8px;
-            background-color: #fafafa;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
+        
+        .checkbox-grid::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        .checkbox-grid::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .checkbox-grid::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+        
+        .checkbox-grid::-webkit-scrollbar-thumb:hover {
+            background: #5a67d8;
+        }
+        
         .checkbox-item {
             display: flex;
             align-items: center;
-            padding: 8px;
-            background-color: white;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            transition: background-color 0.2s;
+            padding: 0.5rem;
+            background: #f7fafc;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
         }
+        
         .checkbox-item:hover {
-            background-color: #f8f9fa;
+            background: #edf2f7;
+            transform: scale(1.05);
+            border-color: #cbd5e0;
         }
-        .checkbox-item input {
-            margin-right: 8px;
-            transform: scale(1.2);
+        
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 0.5rem;
+            cursor: pointer;
+            accent-color: #667eea;
         }
+        
         .checkbox-item label {
             cursor: pointer;
+            font-size: 0.875rem;
+            color: #4a5568;
             user-select: none;
-            font-size: 14px;
         }
-        .instructions {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-            border-radius: 8px;
-            color: #155724;
+        
+        .footer {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: white;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .checkbox-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                max-height: 50vh;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🎯 10 Checkboxes Demo</h1>
-            <p>Hypermedia-Driven Real-Time Synchronization with SSE + HTMX</p>
-        </div>
+    <div class="hero">
+        <h1>10,000 Checkboxes</h1>
+        <p class="subtitle">A Real-Time Hypermedia Experiment</p>
         
-        <div class="stats">
-            <strong>Checked: <span id="checked-count">{{.CheckedCount}}</span> / 10</strong>
+        <div class="experiment-info">
+            <p>
+                This is an experiment in <strong>hypermedia-driven real-time synchronization</strong>. 
+                Every checkbox you click is instantly synchronized across all connected browsers using 
+                Server-Sent Events (SSE) and HTMX.
+            </p>
+            <p>
+                Unlike traditional approaches that send JSON and require client-side rendering, 
+                this demo sends pure HTML fragments. Each checkbox update is a tiny ~50 byte HTML snippet 
+                that surgically updates just that checkbox across all browsers.
+            </p>
+            <p>
+                Open this page in multiple tabs or share with friends to see the magic! 
+                The server maintains zero client state - it's all just HTML over the wire.
+            </p>
+            <a href="https://github.com/Utility-Gods/hypermedia-sync" class="github-link" target="_blank">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                View on GitHub
+            </a>
         </div>
+    </div>
+    
+    <div class="stats">
+        <div class="stats-card">
+            <div class="number" id="checked-count">{{.CheckedCount}}</div>
+            <div class="label">Checkboxes Checked</div>
+        </div>
+    </div>
 
-        <!-- SSE Connection Wrapper - This element stays, only inner content gets replaced -->
+    <div class="checkbox-container">
+        <!-- SSE Connection Wrapper -->
         <div hx-ext="sse" 
              sse-connect="/events?originator={{.OriginatorID}}" 
              id="sse-wrapper">
@@ -237,21 +375,15 @@ func indexHandler(c echo.Context) error {
                            {{if .Checked}}checked{{end}}
                            hx-post="/toggle/{{.ID}}"
                            hx-swap="none">
-                    <label for="cb-{{.ID}}">Checkbox {{.ID}}</label>
+                    <label for="cb-{{.ID}}">{{.ID}}</label>
                 </div>
                 {{end}}
             </div>
         </div>
-
-        <div class="instructions">
-            <h3>📋 Instructions:</h3>
-            <ul>
-                <li>Open this page in multiple browser tabs or windows</li>
-                <li>Click any checkbox in one tab</li>
-                <li>Watch it update instantly in all other tabs via SSE!</li>
-                <li>The server broadcasts HTML updates to all connected clients</li>
-            </ul>
-        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Built with HTMX + Server-Sent Events • No WebSockets, No JSON, Just HTML</p>
     </div>
 
     <script>
@@ -294,7 +426,7 @@ func indexHandler(c echo.Context) error {
 	var cbData []CheckboxData
 	checkedCount := 0
 
-	for i := 1; i <= 10; i++ {
+	for i := 1; i <= 10000; i++ {
 		checked := checkboxes[i]
 		cbData = append(cbData, CheckboxData{ID: i, Checked: checked})
 		if checked {
@@ -361,7 +493,7 @@ func toggleHandler(c echo.Context) error {
 		return c.String(400, "Invalid checkbox ID")
 	}
 
-	if id < 1 || id > 10 {
+	if id < 1 || id > 10000 {
 		return c.String(400, "Checkbox ID out of range")
 	}
 

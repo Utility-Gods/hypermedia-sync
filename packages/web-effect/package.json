@@ -1,0 +1,22 @@
+{
+  "name": "web-effect",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev src/index.ts",
+    "deploy": "wrangler deploy --minify src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@effect/platform": "^0.58.0",
+    "@effect/schema": "^0.68.0",
+    "effect": "^3.4.0",
+    "hono": "^4.5.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240806.0",
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.0",
+    "wrangler": "^3.65.0"
+  }
+}
