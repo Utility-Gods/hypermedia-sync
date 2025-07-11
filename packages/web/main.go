@@ -42,9 +42,9 @@ type Connection struct {
 }
 
 type Event struct {
-	Name       string
-	Data       string
-	ExcludeID  string // Originator ID to exclude from broadcast
+	Name      string
+	Data      string
+	ExcludeID string // Originator ID to exclude from broadcast
 }
 
 func NewHub() *Hub {
@@ -66,7 +66,9 @@ func (h *Hub) Run() {
 
 		case conn := <-h.unregister:
 			h.connMu.Lock()
-			delete(h.connections, conn.ID)
+			if _, exists := h.connections[conn.ID]; exists {
+				delete(h.connections, conn.ID)
+			}
 			h.connMu.Unlock()
 
 		case event := <-h.broadcast:
@@ -80,9 +82,30 @@ func (h *Hub) Run() {
 								fmt.Printf("Error broadcasting to connection: %v\n", r)
 							}
 						}()
+						
+						// Check if connection is still valid
+						select {
+						case <-c.Done:
+							// Connection is closed, skip
+							return
+						default:
+							// Connection is active, proceed with broadcast
+						}
+						
+						// Check if writer is not nil
+						if c.Writer == nil {
+							fmt.Printf("Warning: Writer is nil for connection %s\n", c.ID)
+							return
+						}
+						
 						// Format SSE event data properly - replace newlines with data: prefix
 						eventData := strings.ReplaceAll(event.Data, "\n", "\ndata: ")
-						fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", event.Name, eventData)
+						_, err := fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", event.Name, eventData)
+						if err != nil {
+							fmt.Printf("Error writing to connection %s: %v\n", c.ID, err)
+							return
+						}
+						
 						if flusher, ok := c.Writer.(http.Flusher); ok {
 							flusher.Flush()
 						}
@@ -94,7 +117,6 @@ func (h *Hub) Run() {
 	}
 }
 
-
 var hub = NewHub()
 
 // generateSingleCheckboxHTML creates HTML for a single checkbox
@@ -103,8 +125,8 @@ func generateSingleCheckboxHTML(id int, checked bool) string {
 	if checked {
 		checkedAttr = "checked"
 	}
-	
-	return fmt.Sprintf(`<input type="checkbox" id="cb-%d" %s hx-post="/toggle/%d" hx-swap="none"><label for="cb-%d">Checkbox %d</label>`, 
+
+	return fmt.Sprintf(`<input type="checkbox" id="cb-%d" %s hx-post="/toggle/%d" hx-swap="none"><label for="cb-%d"> %d</label>`,
 		id, checkedAttr, id, id, id)
 }
 
@@ -159,14 +181,14 @@ func indexHandler(c echo.Context) error {
         
         .hero {
             text-align: center;
-            padding: 3rem 1rem;
+            padding: 2rem 1rem 3rem;
             color: white;
         }
         
         .hero h1 {
             font-size: 3rem;
             font-weight: 700;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
         
@@ -175,22 +197,6 @@ func indexHandler(c echo.Context) error {
             opacity: 0.9;
             margin-bottom: 2rem;
             font-weight: 300;
-        }
-        
-        .experiment-info {
-            max-width: 800px;
-            margin: 0 auto 3rem;
-            padding: 2rem;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .experiment-info p {
-            font-size: 1.125rem;
-            line-height: 1.8;
-            margin-bottom: 1rem;
         }
         
         .github-link {
@@ -210,32 +216,6 @@ func indexHandler(c echo.Context) error {
         .github-link:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-        }
-        
-        .stats {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        
-        .stats-card {
-            display: inline-block;
-            background: white;
-            padding: 1.5rem 3rem;
-            border-radius: 1rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-        
-        .stats-card .number {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #667eea;
-        }
-        
-        .stats-card .label {
-            font-size: 0.875rem;
-            color: #718096;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
         
         .checkbox-container {
@@ -329,35 +309,12 @@ func indexHandler(c echo.Context) error {
         <h1>10,000 Checkboxes</h1>
         <p class="subtitle">A Real-Time Hypermedia Experiment</p>
         
-        <div class="experiment-info">
-            <p>
-                This is an experiment in <strong>hypermedia-driven real-time synchronization</strong>. 
-                Every checkbox you click is instantly synchronized across all connected browsers using 
-                Server-Sent Events (SSE) and HTMX.
-            </p>
-            <p>
-                Unlike traditional approaches that send JSON and require client-side rendering, 
-                this demo sends pure HTML fragments. Each checkbox update is a tiny ~50 byte HTML snippet 
-                that surgically updates just that checkbox across all browsers.
-            </p>
-            <p>
-                Open this page in multiple tabs or share with friends to see the magic! 
-                The server maintains zero client state - it's all just HTML over the wire.
-            </p>
-            <a href="https://github.com/Utility-Gods/hypermedia-sync" class="github-link" target="_blank">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                </svg>
-                View on GitHub
-            </a>
-        </div>
-    </div>
-    
-    <div class="stats">
-        <div class="stats-card">
-            <div class="number" id="checked-count">{{.CheckedCount}}</div>
-            <div class="label">Checkboxes Checked</div>
-        </div>
+        <a href="https://github.com/Utility-Gods/hypermedia-sync" class="github-link" target="_blank">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            View on GitHub
+        </a>
     </div>
 
     <div class="checkbox-container">
@@ -394,22 +351,6 @@ func indexHandler(c echo.Context) error {
         document.addEventListener('htmx:configRequest', function(evt) {
             evt.detail.headers['X-Originator-ID'] = window.originatorId;
         });
-
-        // Update checked count on page updates
-        document.addEventListener('htmx:afterSwap', function(evt) {
-            updateCheckedCount();
-        });
-
-        function updateCheckedCount() {
-            const checked = document.querySelectorAll('input[type="checkbox"]:checked').length;
-            const countElement = document.getElementById('checked-count');
-            if (countElement) {
-                countElement.textContent = checked;
-            }
-        }
-
-        // Initial count
-        updateCheckedCount();
     </script>
 </body>
 </html>`
@@ -419,27 +360,21 @@ func indexHandler(c echo.Context) error {
 
 	type PageData struct {
 		Checkboxes   []CheckboxData
-		CheckedCount int
 		OriginatorID string
 	}
 
 	var cbData []CheckboxData
-	checkedCount := 0
 
 	for i := 1; i <= 10000; i++ {
 		checked := checkboxes[i]
 		cbData = append(cbData, CheckboxData{ID: i, Checked: checked})
-		if checked {
-			checkedCount++
-		}
 	}
 
 	// Generate unique originator ID for this page load
 	originatorID := fmt.Sprintf("page-%d-%d", time.Now().UnixNano(), rand.Intn(1000000))
-	
+
 	data := PageData{
 		Checkboxes:   cbData,
-		CheckedCount: checkedCount,
 		OriginatorID: originatorID,
 	}
 
@@ -448,12 +383,6 @@ func indexHandler(c echo.Context) error {
 }
 
 func sseHandler(c echo.Context) error {
-	w := c.Response()
-	w.Header().Set("Content-Type", "text/event-stream")
-	w.Header().Set("Cache-Control", "no-cache")
-	w.Header().Set("Connection", "keep-alive")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-
 	// Get originator ID from query params
 	originatorID := c.QueryParam("originator")
 	if originatorID == "" {
@@ -464,15 +393,25 @@ func sseHandler(c echo.Context) error {
 		originatorID = fmt.Sprintf("sse-%d", connCount)
 	}
 
+	// Set headers before writing response
+	c.Response().Header().Set("Content-Type", "text/event-stream")
+	c.Response().Header().Set("Cache-Control", "no-cache")
+	c.Response().Header().Set("Connection", "keep-alive")
+	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
+	c.Response().Header().Set("X-Accel-Buffering", "no") // Disable proxy buffering
+
+	// Write status and flush headers
+	c.Response().WriteHeader(http.StatusOK)
+	c.Response().Flush()
+
+	// Send initial connection message
+	fmt.Fprintf(c.Response().Writer, ": connected\n\n")
+	c.Response().Flush()
+
 	conn := &Connection{
 		ID:     originatorID,
-		Writer: w,
+		Writer: c.Response().Writer,
 		Done:   make(chan struct{}),
-	}
-
-	// Flush headers immediately to establish connection
-	if flusher, ok := w.Writer.(http.Flusher); ok {
-		flusher.Flush()
 	}
 
 	hub.register <- conn
@@ -508,7 +447,7 @@ func toggleHandler(c echo.Context) error {
 
 	// Generate HTML for just this checkbox
 	checkboxHTML := generateSingleCheckboxHTML(id, newState)
-	// Broadcast only the affected checkbox
+	// Broadcast only the affected checkbox (excluding originator)
 	hub.broadcast <- Event{
 		Name:      fmt.Sprintf("checkbox-%d-updated", id),
 		Data:      checkboxHTML,
