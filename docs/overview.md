@@ -80,7 +80,7 @@ fmt.Fprintf(w, "event: %s\ndata: %s\n\n", eventName, eventData)
 ```
 
 ### Originator Filtering
-Prevent echo effects by excluding the action originator from SSE broadcasts.
+Prevent echo effects by excluding the action originator from SSE broadcasts using a topic-based approach.
 
 ```javascript
 // Generate unique ID per browser tab
@@ -90,13 +90,18 @@ window.originatorId = crypto.randomUUID();
 document.addEventListener('htmx:configRequest', function(evt) {
     evt.detail.headers['X-Originator-ID'] = window.originatorId;
 });
+
+// Subscribe to SSE with topics (all + originator ID)
+sseElement.setAttribute('sse-connect', '/events?topics=all,' + window.originatorId);
 ```
 
 ```go
-// Server excludes originator from broadcast
+// Server broadcasts to "all" topic except connections with originator topic
 originatorID := c.Request().Header.Get("X-Originator-ID")
-hub.BroadcastExcluding(event, originatorID)
+hub.BroadcastToAllExcept(event, originatorID)
 ```
+
+See [originator-filtering.md](originator-filtering.md) for detailed implementation.
 
 ## Benefits
 

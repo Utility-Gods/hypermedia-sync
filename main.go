@@ -3,10 +3,12 @@ package main
 import (
 	"fmt"
 	"html/template"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -27,7 +29,6 @@ type CheckboxData struct {
 // SSE Hub for managing connections
 type Hub struct {
 	connections map[string]*Connection
-	topics      map[string]map[string]*Connection // topic -> connectionID -> connection
 	broadcast   chan Event
 	register    chan *Connection
 	unregister  chan *Connection
@@ -36,21 +37,19 @@ type Hub struct {
 
 type Connection struct {
 	ID     string
-	Topics []string
 	Writer http.ResponseWriter
 	Done   chan struct{}
 }
 
 type Event struct {
-	Name   string
-	Data   string
-	Topics []string // Topics to broadcast to
+	Name       string
+	Data       string
+	ExcludeID  string // Originator ID to exclude from broadcast
 }
 
 func NewHub() *Hub {
 	return &Hub{
 		connections: make(map[string]*Connection),
-		topics:      make(map[string]map[string]*Connection),
 		broadcast:   make(chan Event, 100),
 		register:    make(chan *Connection),
 		unregister:  make(chan *Connection),
@@ -63,55 +62,33 @@ func (h *Hub) Run() {
 		case conn := <-h.register:
 			h.connMu.Lock()
 			h.connections[conn.ID] = conn
-			// Register connection to its topics
-			for _, topic := range conn.Topics {
-				if h.topics[topic] == nil {
-					h.topics[topic] = make(map[string]*Connection)
-				}
-				h.topics[topic][conn.ID] = conn
-			}
 			h.connMu.Unlock()
-			fmt.Printf("Client connected: %s with topics %v (total: %d)\n", conn.ID, conn.Topics, len(h.connections))
+			fmt.Printf("Client connected: %s (total: %d)\n", conn.ID, len(h.connections))
 
 		case conn := <-h.unregister:
 			h.connMu.Lock()
 			delete(h.connections, conn.ID)
-			// Remove connection from all topics
-			for _, topic := range conn.Topics {
-				if h.topics[topic] != nil {
-					delete(h.topics[topic], conn.ID)
-					if len(h.topics[topic]) == 0 {
-						delete(h.topics, topic)
-					}
-				}
-			}
 			h.connMu.Unlock()
 			fmt.Printf("Client disconnected: %s (total: %d)\n", conn.ID, len(h.connections))
 
 		case event := <-h.broadcast:
 			h.connMu.RLock()
-			// Broadcast to connections subscribed to the event's topics
-			sentTo := make(map[string]bool)
-			for _, topic := range event.Topics {
-				if topicConns, exists := h.topics[topic]; exists {
-					for connID, conn := range topicConns {
-						if !sentTo[connID] {
-							sentTo[connID] = true
-							go func(c *Connection) {
-								defer func() {
-									if r := recover(); r != nil {
-										fmt.Printf("Error broadcasting to connection: %v\n", r)
-									}
-								}()
-								// Format SSE event data properly - replace newlines with data: prefix
-								eventData := strings.ReplaceAll(event.Data, "\n", "\ndata: ")
-								fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", event.Name, eventData)
-								if flusher, ok := c.Writer.(http.Flusher); ok {
-									flusher.Flush()
-								}
-							}(conn)
+			// Broadcast to all connections except the excluded ID
+			for connID, conn := range h.connections {
+				if connID != event.ExcludeID {
+					go func(c *Connection) {
+						defer func() {
+							if r := recover(); r != nil {
+								fmt.Printf("Error broadcasting to connection: %v\n", r)
+							}
+						}()
+						// Format SSE event data properly - replace newlines with data: prefix
+						eventData := strings.ReplaceAll(event.Data, "\n", "\ndata: ")
+						fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", event.Name, eventData)
+						if flusher, ok := c.Writer.(http.Flusher); ok {
+							flusher.Flush()
 						}
-					}
+					}(conn)
 				}
 			}
 			h.connMu.RUnlock()
@@ -121,43 +98,6 @@ func (h *Hub) Run() {
 
 
 var hub = NewHub()
-
-// BroadcastToAllExcept sends an event to all connections except those subscribed to excludeTopic
-func (h *Hub) BroadcastToAllExcept(event Event, excludeTopic string) {
-	// Create a new event that goes to "all" topic but excludes connections that have excludeTopic
-	h.connMu.RLock()
-	defer h.connMu.RUnlock()
-	
-	// Get all connections subscribed to "all" topic
-	if allConns, exists := h.topics["all"]; exists {
-		for _, conn := range allConns {
-			// Check if this connection is also subscribed to the exclude topic
-			shouldSend := true
-			for _, topic := range conn.Topics {
-				if topic == excludeTopic {
-					shouldSend = false
-					break
-				}
-			}
-			
-			if shouldSend {
-				go func(c *Connection) {
-					defer func() {
-						if r := recover(); r != nil {
-							fmt.Printf("Error broadcasting to connection: %v\n", r)
-						}
-					}()
-					// Format SSE event data properly - replace newlines with data: prefix
-					eventData := strings.ReplaceAll(event.Data, "\n", "\ndata: ")
-					fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", event.Name, eventData)
-					if flusher, ok := c.Writer.(http.Flusher); ok {
-						flusher.Flush()
-					}
-				}(conn)
-			}
-		}
-	}
-}
 
 // generateCheckboxGridHTML creates the complete checkbox grid HTML
 func generateCheckboxGridHTML() string {
@@ -292,7 +232,11 @@ func indexHandler(c echo.Context) error {
         </div>
 
         <!-- SSE Connection Wrapper - This element stays, only inner content gets replaced -->
-        <div id="sse-wrapper">
+        <div hx-ext="sse" 
+             sse-connect="/events?originator={{.OriginatorID}}" 
+             sse-swap="team-updated"
+             hx-target="#team-section"
+             id="sse-wrapper">
             <div class="checkbox-grid" id="team-section">
                 {{range .Checkboxes}}
                 <div class="checkbox-item" id="checkbox-{{.ID}}">
@@ -319,8 +263,8 @@ func indexHandler(c echo.Context) error {
     </div>
 
     <script>
-        // Generate unique originator ID for this browser tab
-        window.originatorId = crypto.randomUUID();
+        // Server-generated originator ID
+        window.originatorId = '{{.OriginatorID}}';
         
         // Add originator ID to all HTMX requests
         document.addEventListener('htmx:configRequest', function(evt) {
@@ -340,21 +284,6 @@ func indexHandler(c echo.Context) error {
             }
         }
 
-        // Set up SSE connection after DOM is ready
-        document.addEventListener('DOMContentLoaded', function() {
-            const sseWrapper = document.getElementById('sse-wrapper');
-            if (sseWrapper) {
-                // Set HTMX SSE attributes
-                sseWrapper.setAttribute('hx-ext', 'sse');
-                sseWrapper.setAttribute('sse-connect', '/events?topics=all,' + window.originatorId);
-                sseWrapper.setAttribute('sse-swap', 'team-updated');
-                sseWrapper.setAttribute('hx-target', '#team-section');
-                
-                // Initialize HTMX on the element
-                htmx.process(sseWrapper);
-            }
-        });
-
         // Initial count
         updateCheckedCount();
     </script>
@@ -367,6 +296,7 @@ func indexHandler(c echo.Context) error {
 	type PageData struct {
 		Checkboxes   []CheckboxData
 		CheckedCount int
+		OriginatorID string
 	}
 
 	var cbData []CheckboxData
@@ -380,9 +310,13 @@ func indexHandler(c echo.Context) error {
 		}
 	}
 
+	// Generate unique originator ID for this page load
+	originatorID := fmt.Sprintf("page-%d-%d", time.Now().UnixNano(), rand.Intn(1000000))
+	
 	data := PageData{
 		Checkboxes:   cbData,
 		CheckedCount: checkedCount,
+		OriginatorID: originatorID,
 	}
 
 	t := template.Must(template.New("index").Parse(tmpl))
@@ -396,24 +330,20 @@ func sseHandler(c echo.Context) error {
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	// Get topics from query params
-	topicsParam := c.QueryParam("topics")
-	var topics []string
-	if topicsParam != "" {
-		topics = strings.Split(topicsParam, ",")
+	// Get originator ID from query params
+	originatorID := c.QueryParam("originator")
+	if originatorID == "" {
+		// Fallback if no originator ID provided
+		hub.connMu.RLock()
+		connCount := len(hub.connections)
+		hub.connMu.RUnlock()
+		originatorID = fmt.Sprintf("sse-%d", connCount)
 	}
 	
-	// Generate connection ID
-	hub.connMu.RLock()
-	connCount := len(hub.connections)
-	hub.connMu.RUnlock()
-	connID := fmt.Sprintf("sse-%d", connCount)
-	
-	fmt.Printf("SSE Handler - Topics: %v, Connection ID: %s\n", topics, connID)
+	fmt.Printf("SSE Handler - Connection ID: %s\n", originatorID)
 
 	conn := &Connection{
-		ID:     connID,
-		Topics: topics,
+		ID:     originatorID,
 		Writer: w,
 		Done:   make(chan struct{}),
 	}
@@ -485,10 +415,11 @@ func toggleHandler(c echo.Context) error {
 
 	fmt.Printf("Broadcasting checkbox-%d update to all except originator: %s\n", id, originatorID)
 	// Broadcast to all connections except the originator
-	hub.BroadcastToAllExcept(Event{
-		Name: "team-updated",
-		Data: gridHTML,
-	}, originatorID)
+	hub.broadcast <- Event{
+		Name:      "team-updated",
+		Data:      gridHTML,
+		ExcludeID: originatorID,
+	}
 
 	// Return updated HTML to originator (HTMX response)
 	if c.Request().Header.Get("HX-Request") == "true" {
