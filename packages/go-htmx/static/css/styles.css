@@ -79,6 +79,48 @@ body {
     box-shadow: 0 6px 12px rgba(0,0,0,0.4);
 }
 
+.online-users {
+    margin-top: 2rem;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 2rem;
+    backdrop-filter: blur(10px);
+}
+
+.online-count {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-primary-400);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.online-count::before {
+    content: "";
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background: #4ade80;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(74, 222, 128, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+    }
+}
+
 .checkbox-container {
     max-width: 1400px;
     margin: 0 auto;

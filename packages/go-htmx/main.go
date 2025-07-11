@@ -33,6 +33,7 @@ type Hub struct {
 	register    chan *Connection
 	unregister  chan *Connection
 	connMu      sync.RWMutex
+	onlineCount int // Track the number of online users
 }
 
 type Connection struct {
@@ -62,14 +63,34 @@ func (h *Hub) Run() {
 		case conn := <-h.register:
 			h.connMu.Lock()
 			h.connections[conn.ID] = conn
+			h.onlineCount = len(h.connections)
+			onlineCount := h.onlineCount
 			h.connMu.Unlock()
+			
+			// Broadcast online count update to all connections
+			onlineHTML := fmt.Sprintf(`<span class="online-count">%d users online</span>`, onlineCount)
+			h.broadcast <- Event{
+				Name: "online-count-updated",
+				Data: onlineHTML,
+			}
 
 		case conn := <-h.unregister:
 			h.connMu.Lock()
 			if _, exists := h.connections[conn.ID]; exists {
 				delete(h.connections, conn.ID)
+				h.onlineCount = len(h.connections)
+				onlineCount := h.onlineCount
+				h.connMu.Unlock()
+				
+				// Broadcast online count update to all connections
+				onlineHTML := fmt.Sprintf(`<span class="online-count">%d users online</span>`, onlineCount)
+				h.broadcast <- Event{
+					Name: "online-count-updated",
+					Data: onlineHTML,
+				}
+			} else {
+				h.connMu.Unlock()
 			}
-			h.connMu.Unlock()
 
 		case event := <-h.broadcast:
 			h.connMu.RLock()
@@ -168,23 +189,29 @@ func indexHandler(c echo.Context) error {
     <link rel="stylesheet" href="static/css/styles.css">
 </head>
 <body>
-    <div class="hero">
-        <h1>10,000 Checkboxes</h1>
-        <p class="subtitle">A Real-Time Hypermedia Experiment</p>
-        
-        <a href="https://github.com/Utility-Gods/hypermedia-sync" class="github-link" target="_blank">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-            </svg>
-            View on GitHub
-        </a>
-    </div>
+    <!-- SSE Connection Wrapper -->
+    <div hx-ext="sse" 
+         sse-connect="/events?originator={{.OriginatorID}}" 
+         id="sse-wrapper">
+         
+        <div class="hero">
+            <h1>10,000 Checkboxes</h1>
+            <p class="subtitle">A Real-Time Hypermedia Experiment</p>
+            
+            <a href="https://github.com/Utility-Gods/hypermedia-sync" class="github-link" target="_blank">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                View on GitHub
+            </a>
+            
+            <!-- Online Users Display -->
+            <div class="online-users" id="online-users-container" sse-swap="online-count-updated" hx-swap="innerHTML">
+                <span class="online-count">{{.OnlineCount}} users online</span>
+            </div>
+        </div>
 
-    <div class="checkbox-container">
-        <!-- SSE Connection Wrapper -->
-        <div hx-ext="sse" 
-             sse-connect="/events?originator={{.OriginatorID}}" 
-             id="sse-wrapper">
+        <div class="checkbox-container">
             <div class="checkbox-grid" id="team-section">
                 {{range .Checkboxes}}
                 <label for="cb-{{.ID}}" class="checkbox-item" id="checkbox-{{.ID}}"
@@ -224,6 +251,7 @@ func indexHandler(c echo.Context) error {
 	type PageData struct {
 		Checkboxes   []CheckboxData
 		OriginatorID string
+		OnlineCount  int
 	}
 
 	var cbData []CheckboxData
@@ -236,9 +264,15 @@ func indexHandler(c echo.Context) error {
 	// Generate unique originator ID for this page load
 	originatorID := fmt.Sprintf("page-%d-%d", time.Now().UnixNano(), rand.Intn(1000000))
 
+	// Get current online count
+	hub.connMu.RLock()
+	onlineCount := len(hub.connections)
+	hub.connMu.RUnlock()
+
 	data := PageData{
 		Checkboxes:   cbData,
 		OriginatorID: originatorID,
+		OnlineCount:  onlineCount,
 	}
 
 	t := template.Must(template.New("index").Parse(tmpl))
