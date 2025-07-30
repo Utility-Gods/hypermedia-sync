@@ -18,7 +18,7 @@ func getAttribute(data, attr string) string {
 	return ""
 }
 
-var ultrathinkScriptHandle = templ.NewOnceHandle()
+var canvasDrawSyncScriptHandle = templ.NewOnceHandle()
 
 type DrawingElement struct {
 	ID        string    `json:"id"`
@@ -36,26 +36,28 @@ type CanvasState struct {
 	Height   int              `json:"height"`
 }
 
-type UltraThinkPageData struct {
+type CanvasDrawSyncPageData struct {
 	Canvas       CanvasState
 	OriginatorID string
 	OnlineCount  int
 }
 
-templ UltraThinkPageFull(data UltraThinkPageData) {
+templ CanvasDrawSyncPageFull(data CanvasDrawSyncPageData) {
 	@layout.AppWithSSE("Canvas - Collaborative Drawing - HTMX + SSE Hypermedia Sync", data.OnlineCount, data.OriginatorID) {
-		@UltraThinkPageContent(data)
+		@CanvasDrawSyncPageContent(data)
 	}
 }
 
-templ UltraThinkPageContent(data UltraThinkPageData) {
-	@layout.ExperimentHeader("Canvas", "Collaborative Real-Time Drawing")
-	@UltraThinkToolbar(data.OriginatorID)
-	@UltraThinkCanvas(data.Canvas)
-	@UltraThinkScript(data.OriginatorID)
+templ CanvasDrawSyncPageContent(data CanvasDrawSyncPageData) {
+	<div hx-ext="sse" sse-connect={ "/events?originator=" + data.OriginatorID } class="flex-1 flex flex-col">
+		@layout.ExperimentHeader("Canvas", "Collaborative Real-Time Drawing")
+		@CanvasDrawSyncToolbar(data.OriginatorID)
+		@CanvasDrawSyncCanvas(data.Canvas)
+		@CanvasDrawSyncScript(data.OriginatorID)
+	</div>
 }
 
-templ UltraThinkToolbar(originatorID string) {
+templ CanvasDrawSyncToolbar(originatorID string) {
 	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
 		<div class="bg-secondary-800/30 rounded-xl border border-secondary-700 p-4">
 			<div class="flex flex-wrap items-center gap-4">
@@ -83,7 +85,7 @@ templ UltraThinkToolbar(originatorID string) {
 				<button 
 					id="clear-canvas-btn"
 					class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
-					hx-post="/experiments/ultrathink/clear"
+					hx-post="/experiments/canvas-draw-sync/clear"
 					hx-target="#canvas-container"
 					hx-swap="innerHTML"
 				>
@@ -96,7 +98,7 @@ templ UltraThinkToolbar(originatorID string) {
 	</div>
 }
 
-templ UltraThinkCanvas(canvas CanvasState) {
+templ CanvasDrawSyncCanvas(canvas CanvasState) {
 	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
 		<div class="bg-secondary-800/30 rounded-xl border border-secondary-700 p-6">
 			<div id="canvas-container" class="flex justify-center" sse-swap="canvas-cleared" hx-swap="innerHTML">
@@ -138,12 +140,12 @@ templ DrawingElementSSE(element DrawingElement) {
 	@DrawingElementSVG(element)
 }
 
-templ UltraThinkScript(originatorID string) {
-	@templ.JSONScript("ultrathinkOriginatorId", originatorID)
-	@ultrathinkScriptHandle.Once() {
+templ CanvasDrawSyncScript(originatorID string) {
+	@templ.JSONScript("canvasDrawSyncOriginatorId", originatorID)
+	@canvasDrawSyncScriptHandle.Once() {
 		<script type="text/javascript">
 			(function () {
-				var originatorId = JSON.parse(document.getElementById('ultrathinkOriginatorId').textContent);
+				var originatorId = JSON.parse(document.getElementById('canvasDrawSyncOriginatorId').textContent);
 				var isDrawing = false;
 				var currentPath = '';
 				var currentTool = 'pen';
@@ -204,6 +206,7 @@ templ UltraThinkScript(originatorID string) {
 						}
 					}
 				});
+				
 				
 				var toolSelect = document.getElementById('tool-select');
 				var colorPicker = document.getElementById('color-picker');
@@ -404,7 +407,7 @@ templ UltraThinkScript(originatorID string) {
 				
 				function sendDrawingData(type, data) {
 					// Send to server in background (no visual feedback needed since we already drew it)
-					fetch('/experiments/ultrathink/draw', {
+					fetch('/experiments/canvas-draw-sync/draw', {
 						method: 'POST',
 						headers: {
 							'Content-Type': 'application/x-www-form-urlencoded',
@@ -415,17 +418,6 @@ templ UltraThinkScript(originatorID string) {
 				}
 				
 				updateCursor();
-				
-				// Scroll canvas into view on page load
-				setTimeout(function() {
-					var canvasContainer = document.getElementById('canvas-container');
-					if (canvasContainer) {
-						canvasContainer.scrollIntoView({ 
-							behavior: 'smooth', 
-							block: 'center' 
-						});
-					}
-				}, 500); // Small delay to ensure page is fully loaded
 				
 				console.log('Canvas initialized with originator:', originatorId);
 			})();

@@ -16,10 +16,10 @@ func ExperimentsListHandler(c echo.Context) error {
 			Status:      "Active",
 		},
 		{
-			ID:          "ultrathink",
+			ID:          "canvas-draw-sync",
 			Name:        "Canvas",  
 			Description: "Collaborative real-time canvas where multiple users can draw, sketch, and create together using pure hypermedia",
-			Path:        "/experiments/ultrathink",
+			Path:        "/experiments/canvas-draw-sync",
 			Status:      "Active",
 		},
 	}

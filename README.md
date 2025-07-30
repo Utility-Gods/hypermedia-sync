@@ -23,6 +23,9 @@ That's it. The server is the single source of truth. Browsers are just dumb term
 ### 10,000 Checkboxes (`/experiments/checkboxes`)
 Our flagship experiment syncs 10,000 checkboxes across browsers in real-time. Each click broadcasts ~50 bytes of HTML. Open it in multiple tabs. Click around. Watch them sync instantly.
 
+### Canvas (`/experiments/canvas-draw-sync`)
+Collaborative real-time drawing canvas. Multiple users can draw, sketch, and create together using different tools, colors, and brush sizes. All drawing operations sync instantly via pure hypermedia.
+
 ## 🚀 Running the Experiments
 
 ```bash
@@ -41,12 +44,21 @@ docker run -p 8080:8080 hypermedia-sync
 ```
 hypermedia-sync/
 ├── main.go                 # Application entry point & routing
-├── handlers/               # Core route handlers
-├── sse/                   # SSE hub infrastructure  
-├── experiments/           # Individual experiments
-│   └── checkboxes/        # 10K checkboxes experiment
+├── internal/
+│   ├── handlers/           # Core route handlers
+│   ├── sse/               # SSE hub infrastructure
+│   ├── experiments/       # Individual experiments
+│   │   ├── checkboxes/    # 10K checkboxes experiment
+│   │   └── canvas-draw-sync/ # Collaborative canvas experiment
+│   └── templates/         # Templ template files
+│       ├── experiments/   # Experiment-specific templates
+│       ├── layout/        # Shared layout components
+│       └── pages/         # Page templates
 ├── static/                # CSS, JS, assets
-└── docs/                  # Architecture documentation
+│   ├── css/              # Tailwind CSS
+│   ├── js/               # HTMX & SSE JavaScript
+│   └── img/              # Images and icons
+└── docs/                 # Architecture documentation
 ```
 
 ## 💡 Why This Matters

@@ -1,4 +1,4 @@
-package ultrathink
+package canvasdrawsync
 
 import (
 	"fmt"
@@ -22,7 +22,7 @@ var (
 	canvasMutex sync.RWMutex
 )
 
-func UltraThinkHandler(hub *sse.Hub) echo.HandlerFunc {
+func CanvasDrawSyncHandler(hub *sse.Hub) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		canvasMutex.RLock()
 		defer canvasMutex.RUnlock()
@@ -31,18 +31,18 @@ func UltraThinkHandler(hub *sse.Hub) echo.HandlerFunc {
 
 		onlineCount := hub.GetOnlineCount()
 
-		data := experiments.UltraThinkPageData{
+		data := experiments.CanvasDrawSyncPageData{
 			Canvas:       canvas,
 			OriginatorID: originatorID,
 			OnlineCount:  onlineCount,
 		}
 
 		if c.Request().Header.Get("HX-Request") == "true" {
-			component := experiments.UltraThinkPageContent(data)
+			component := experiments.CanvasDrawSyncPageContent(data)
 			return component.Render(c.Request().Context(), c.Response().Writer)
 		}
 
-		component := experiments.UltraThinkPageFull(data)
+		component := experiments.CanvasDrawSyncPageFull(data)
 		return component.Render(c.Request().Context(), c.Response().Writer)
 	}
 }
@@ -119,7 +119,7 @@ func ClearCanvasHandler(hub *sse.Hub) echo.HandlerFunc {
 		})
 
 		canvasMutex.RLock()
-		data := experiments.UltraThinkPageData{
+		data := experiments.CanvasDrawSyncPageData{
 			Canvas:       canvas,
 			OriginatorID: originatorID,
 			OnlineCount:  0,
