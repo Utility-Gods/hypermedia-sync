@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"hypermedia-sync/internal/experiments/checkboxes"
 	"hypermedia-sync/internal/handlers"
@@ -33,7 +34,11 @@ func main() {
 	e.POST("/experiments/checkboxes/toggle/:id", checkboxes.ToggleHandler(hub))
 
 	// Start server on port from environment or 8080
-	port := ":8080"
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	port = ":" + port
 	fmt.Printf("Server starting on %s\n", port)
 	e.Logger.Fatal(e.Start(port))
 }
