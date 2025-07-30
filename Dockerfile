@@ -39,9 +39,9 @@ COPY --from=builder /app/static ./static
 # Expose port
 EXPOSE 8080
 
-# Health check - use hostname for better Docker networking
+# Health check - test the app inside its own container
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://hypermedia-sync:8080/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:8090/health || exit 1
 
 # Run the application
 CMD ["./main"]
