@@ -182,21 +182,37 @@ templ UltraThinkScript(originatorID string) {
 						console.log('[CANVAS] Event data:', evt.detail.data);
 						
 						try {
-							// Parse SVG content with proper SVG namespace
-							var parser = new DOMParser();
-							var svgDoc = parser.parseFromString('<svg xmlns="http://www.w3.org/2000/svg">' + evt.detail.data + '</svg>', 'image/svg+xml');
-							var svgElement = svgDoc.documentElement.firstElementChild;
+							var currentCanvas = document.getElementById('canvas-svg');
+							if (!currentCanvas) {
+								console.error('[CANVAS] Canvas not found');
+								return;
+							}
 							
-							console.log('[CANVAS] Parsed SVG element:', svgElement);
-							
-							if (svgElement) {
-								// Import the node to ensure proper namespace
-								var importedElement = document.importNode(svgElement, true);
-								canvas.appendChild(importedElement);
-								console.log('[CANVAS] SVG element successfully added to canvas');
+							// Check if data contains a complete SVG (after clearing) or just an element
+							if (evt.detail.data.includes('<svg')) {
+								// Complete SVG received - extract the inner elements
+								var parser = new DOMParser();
+								var svgDoc = parser.parseFromString(evt.detail.data, 'image/svg+xml');
+								var receivedSvg = svgDoc.documentElement;
+								
+								// Extract all child elements (path, rect, circle, text) from the received SVG
+								var elements = receivedSvg.children;
+								for (var i = 0; i < elements.length; i++) {
+									var importedElement = document.importNode(elements[i], true);
+									currentCanvas.appendChild(importedElement);
+									console.log('[CANVAS] Imported element from complete SVG:', importedElement.tagName);
+								}
 							} else {
-								console.error('[CANVAS] No SVG element found in parsed data');
-								console.error('[CANVAS] Raw data was:', evt.detail.data);
+								// Single element received - parse normally
+								var parser = new DOMParser();
+								var svgDoc = parser.parseFromString('<svg xmlns="http://www.w3.org/2000/svg">' + evt.detail.data + '</svg>', 'image/svg+xml');
+								var svgElement = svgDoc.documentElement.firstElementChild;
+								
+								if (svgElement) {
+									var importedElement = document.importNode(svgElement, true);
+									currentCanvas.appendChild(importedElement);
+									console.log('[CANVAS] SVG element successfully added to canvas');
+								}
 							}
 						} catch (error) {
 							console.error('[CANVAS] Error processing canvas SSE event:', error);
@@ -237,28 +253,68 @@ templ UltraThinkScript(originatorID string) {
 				});
 				
 				function updateCursor() {
+					var currentCanvas = document.getElementById('canvas-svg');
+					if (!currentCanvas) return;
 					switch(currentTool) {
 						case 'pen':
-							canvas.style.cursor = 'crosshair';
+							currentCanvas.style.cursor = 'crosshair';
 							break;
 						case 'rect':
 						case 'circle':
-							canvas.style.cursor = 'copy';
+							currentCanvas.style.cursor = 'copy';
 							break;
 						case 'text':
-							canvas.style.cursor = 'text';
+							currentCanvas.style.cursor = 'text';
 							break;
 					}
 				}
 				
-				// Drawing handlers
-				canvas.addEventListener('mousedown', startDrawing);
-				canvas.addEventListener('mousemove', draw);
-				canvas.addEventListener('mouseup', stopDrawing);
-				canvas.addEventListener('mouseleave', stopDrawing);
+				// Function to attach drawing handlers
+				function attachDrawingHandlers(wasCleared = false) {
+					var currentCanvas = document.getElementById('canvas-svg');
+					if (currentCanvas) {
+						// Remove existing listeners if any
+						currentCanvas.removeEventListener('mousedown', startDrawing);
+						currentCanvas.removeEventListener('mousemove', draw);
+						currentCanvas.removeEventListener('mouseup', stopDrawing);
+						currentCanvas.removeEventListener('mouseleave', stopDrawing);
+						currentCanvas.removeEventListener('click', handleShapeClick);
+						
+						// Add listeners
+						currentCanvas.addEventListener('mousedown', startDrawing);
+						currentCanvas.addEventListener('mousemove', draw);
+						currentCanvas.addEventListener('mouseup', stopDrawing);
+						currentCanvas.addEventListener('mouseleave', stopDrawing);
+						currentCanvas.addEventListener('click', handleShapeClick);
+						
+						// Update canvas reference
+						canvas = currentCanvas;
+						
+						// Only remove HTMX SSE attributes if canvas was cleared (SSE context broken)
+						if (wasCleared && currentCanvas.hasAttribute('sse-swap')) {
+							console.log('Canvas was cleared - removing broken sse-swap attribute, using custom handler instead');
+							currentCanvas.removeAttribute('sse-swap');
+							currentCanvas.removeAttribute('hx-swap');
+						}
+					}
+				}
+				
+				// Initial attachment
+				attachDrawingHandlers();
+				
+				// Re-attach handlers when canvas is cleared/replaced
+				document.addEventListener('htmx:afterSwap', function(evt) {
+					if (evt.detail && evt.detail.target && evt.detail.target.id === 'canvas-container') {
+						console.log('Canvas was replaced, re-attaching drawing handlers');
+						attachDrawingHandlers(true); // Pass true to indicate canvas was cleared
+						updateCursor();
+					}
+				});
 				
 				function getMousePos(e) {
-					var rect = canvas.getBoundingClientRect();
+					var currentCanvas = document.getElementById('canvas-svg');
+					if (!currentCanvas) return {x: 0, y: 0};
+					var rect = currentCanvas.getBoundingClientRect();
 					return {
 						x: e.clientX - rect.left,
 						y: e.clientY - rect.top
@@ -340,7 +396,7 @@ templ UltraThinkScript(originatorID string) {
 				}
 				
 				// Handle shape drawing (simplified - could be enhanced with drag-to-size)
-				canvas.addEventListener('click', function(e) {
+				function handleShapeClick(e) {
 					if (currentTool === 'rect' || currentTool === 'circle') {
 						var pos = getMousePos(e);
 						var size = brushSize * 10; // Scale size for shapes
@@ -372,7 +428,7 @@ templ UltraThinkScript(originatorID string) {
 							sendDrawingData('circle', `cx="${pos.x}" cy="${pos.y}" r="${size/2}"`);
 						}
 					}
-				});
+				}
 				
 				function sendDrawingData(type, data) {
 					// Send to server in background (no visual feedback needed since we already drew it)

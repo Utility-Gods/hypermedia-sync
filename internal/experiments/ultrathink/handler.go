@@ -116,10 +116,18 @@ func ClearCanvasHandler(hub *sse.Hub) echo.HandlerFunc {
 		canvas.Elements = []experiments.DrawingElement{}
 		canvasMutex.Unlock()
 
+		// Generate proper cleared canvas HTML for SSE broadcast
+		var sseClearBuilder strings.Builder
+		sseClearComponent := experiments.CanvasSVG(canvas)
+		err := sseClearComponent.Render(c.Request().Context(), &sseClearBuilder)
+		if err != nil {
+			return c.String(500, "Error generating clear canvas SSE HTML")
+		}
+
 		// Broadcast canvas clear (excluding originator)
 		hub.Broadcast(sse.Event{
 			Name:      "canvas-cleared",
-			Data:      `<svg id="canvas-svg" width="1200" height="800" class="border border-secondary-600 bg-white rounded-lg"></svg>`,
+			Data:      sseClearBuilder.String(),
 			ExcludeID: originatorID,
 		})
 
@@ -134,7 +142,7 @@ func ClearCanvasHandler(hub *sse.Hub) echo.HandlerFunc {
 
 		var builder strings.Builder
 		component := experiments.CanvasSVG(data.Canvas)
-		err := component.Render(c.Request().Context(), &builder)
+		err = component.Render(c.Request().Context(), &builder)
 		if err != nil {
 			return c.String(500, "Error generating canvas HTML")
 		}
