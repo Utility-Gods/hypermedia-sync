@@ -25,23 +25,9 @@ templ CheckboxesPageFull(data CheckboxPageData) {
 }
 
 templ CheckboxesPageContent(data CheckboxPageData) {
-	@CheckboxesHero()
+	@layout.ExperimentHeader("10,000 Checkboxes", "Real-Time Hypermedia Synchronization")
 	@CheckboxesContainer(data.Checkboxes)
 	@CheckboxesScript(data.OriginatorID)
-}
-
-templ CheckboxesHero() {
-	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-		@layout.Breadcrumb([]layout.BreadcrumbItem{
-			{Label: "Experiments", URL: "/"},
-			{Label: "10,000 Checkboxes", URL: ""},
-		})
-	</div>
-	
-	<div class="text-center py-8 px-4">
-		<h1 class="text-3xl md:text-4xl font-bold text-secondary-50 mb-3">10,000 Checkboxes</h1>
-		<p class="text-lg text-secondary-300 max-w-2xl mx-auto">A Real-Time Hypermedia Experiment</p>
-	</div>
 }
 
 templ CheckboxesContainer(checkboxes []CheckboxData) {

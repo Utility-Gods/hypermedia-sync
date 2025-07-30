@@ -58,6 +58,7 @@ func DrawHandler(hub *sse.Hub) echo.HandlerFunc {
 		elementType := c.FormValue("type")
 		elementData := c.FormValue("data")
 		color := c.FormValue("color")
+		brushSize := c.FormValue("brushSize")
 		originatorID := c.Request().Header.Get("X-Originator-ID")
 
 		if elementType == "" || elementData == "" {
@@ -66,12 +67,13 @@ func DrawHandler(hub *sse.Hub) echo.HandlerFunc {
 
 		// Create new drawing element
 		element := experiments.DrawingElement{
-			ID:      fmt.Sprintf("elem-%d-%d", time.Now().UnixNano(), rand.Intn(10000)),
-			Type:    elementType,
-			Data:    elementData,
-			Color:   color,
-			User:    originatorID,
-			Created: time.Now(),
+			ID:        fmt.Sprintf("elem-%d-%d", time.Now().UnixNano(), rand.Intn(10000)),
+			Type:      elementType,
+			Data:      elementData,
+			Color:     color,
+			BrushSize: brushSize,
+			User:      originatorID,
+			Created:   time.Now(),
 		}
 
 		// Add to canvas

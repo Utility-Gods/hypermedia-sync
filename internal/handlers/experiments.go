@@ -17,8 +17,8 @@ func ExperimentsListHandler(c echo.Context) error {
 		},
 		{
 			ID:          "ultrathink",
-			Name:        "ULTRATHINK",  
-			Description: "Collaborative real-time canvas where multiple users can draw, sketch, and think together using pure hypermedia",
+			Name:        "Canvas",  
+			Description: "Collaborative real-time canvas where multiple users can draw, sketch, and create together using pure hypermedia",
 			Path:        "/experiments/ultrathink",
 			Status:      "Active",
 		},

@@ -21,12 +21,13 @@ func getAttribute(data, attr string) string {
 var ultrathinkScriptHandle = templ.NewOnceHandle()
 
 type DrawingElement struct {
-	ID       string    `json:"id"`
-	Type     string    `json:"type"` // "path", "rect", "circle", "text"
-	Data     string    `json:"data"` // SVG path data or element attributes
-	Color    string    `json:"color"`
-	User     string    `json:"user"`
-	Created  time.Time `json:"created"`
+	ID        string    `json:"id"`
+	Type      string    `json:"type"` // "path", "rect", "circle", "text"
+	Data      string    `json:"data"` // SVG path data or element attributes
+	Color     string    `json:"color"`
+	BrushSize string    `json:"brush_size"`
+	User      string    `json:"user"`
+	Created   time.Time `json:"created"`
 }
 
 type CanvasState struct {
@@ -42,30 +43,16 @@ type UltraThinkPageData struct {
 }
 
 templ UltraThinkPageFull(data UltraThinkPageData) {
-	@layout.AppWithSSE("ULTRATHINK - Collaborative Canvas - HTMX + SSE Hypermedia Sync", data.OnlineCount, data.OriginatorID) {
+	@layout.AppWithSSE("Canvas - Collaborative Drawing - HTMX + SSE Hypermedia Sync", data.OnlineCount, data.OriginatorID) {
 		@UltraThinkPageContent(data)
 	}
 }
 
 templ UltraThinkPageContent(data UltraThinkPageData) {
-	@UltraThinkHero()
+	@layout.ExperimentHeader("Canvas", "Collaborative Real-Time Drawing")
 	@UltraThinkToolbar(data.OriginatorID)
 	@UltraThinkCanvas(data.Canvas)
 	@UltraThinkScript(data.OriginatorID)
-}
-
-templ UltraThinkHero() {
-	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-		@layout.Breadcrumb([]layout.BreadcrumbItem{
-			{Label: "Experiments", URL: "/"},
-			{Label: "ULTRATHINK", URL: ""},
-		})
-	</div>
-	
-	<div class="text-center py-6 px-4">
-		<h1 class="text-3xl md:text-4xl font-bold text-secondary-50 mb-3">ULTRATHINK</h1>
-		<p class="text-lg text-secondary-300 max-w-2xl mx-auto">Collaborative Real-Time Canvas • Draw Together with Pure Hypermedia</p>
-	</div>
 }
 
 templ UltraThinkToolbar(originatorID string) {
@@ -137,7 +124,7 @@ templ CanvasSVG(canvas CanvasState) {
 templ DrawingElementSVG(element DrawingElement) {
 	switch element.Type {
 		case "path":
-			<path d={ element.Data } stroke={ element.Color } stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+			<path d={ element.Data } stroke={ element.Color } stroke-width={ element.BrushSize } fill="none" stroke-linecap="round" stroke-linejoin="round"/>
 		case "rect":
 			<rect x={ getAttribute(element.Data, "x") } y={ getAttribute(element.Data, "y") } width={ getAttribute(element.Data, "width") } height={ getAttribute(element.Data, "height") } fill={ element.Color } opacity="0.7"/>
 		case "circle":
@@ -358,7 +345,7 @@ templ UltraThinkScript(originatorID string) {
 						previewPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
 						previewPath.id = 'preview-path';
 						previewPath.setAttribute('stroke', currentColor);
-						previewPath.setAttribute('stroke-width', '3');
+						previewPath.setAttribute('stroke-width', brushSize);
 						previewPath.setAttribute('fill', 'none');
 						previewPath.setAttribute('stroke-linecap', 'round');
 						previewPath.setAttribute('stroke-linejoin', 'round');
@@ -383,7 +370,7 @@ templ UltraThinkScript(originatorID string) {
 						pathElement.id = 'temp-' + Date.now();
 						pathElement.setAttribute('d', currentPath);
 						pathElement.setAttribute('stroke', currentColor);
-						pathElement.setAttribute('stroke-width', '3');
+						pathElement.setAttribute('stroke-width', brushSize);
 						pathElement.setAttribute('fill', 'none');
 						pathElement.setAttribute('stroke-linecap', 'round');
 						pathElement.setAttribute('stroke-linejoin', 'round');
@@ -438,12 +425,24 @@ templ UltraThinkScript(originatorID string) {
 							'Content-Type': 'application/x-www-form-urlencoded',
 							'X-Originator-ID': originatorId
 						},
-						body: `type=${type}&data=${encodeURIComponent(data)}&color=${encodeURIComponent(currentColor)}`
+						body: `type=${type}&data=${encodeURIComponent(data)}&color=${encodeURIComponent(currentColor)}&brushSize=${brushSize}`
 					});
 				}
 				
 				updateCursor();
-				console.log('ULTRATHINK initialized with originator:', originatorId);
+				
+				// Scroll canvas into view on page load
+				setTimeout(function() {
+					var canvasContainer = document.getElementById('canvas-container');
+					if (canvasContainer) {
+						canvasContainer.scrollIntoView({ 
+							behavior: 'smooth', 
+							block: 'center' 
+						});
+					}
+				}, 500); // Small delay to ensure page is fully loaded
+				
+				console.log('Canvas initialized with originator:', originatorId);
 			})();
 		</script>
 	}

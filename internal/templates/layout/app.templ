@@ -115,18 +115,33 @@ templ AppWithSSE(title string, onlineCount int, originatorID string) {
 
 
 templ Breadcrumb(items []BreadcrumbItem) {
-	<nav class="flex items-center gap-1 text-sm bg-secondary-800/30 rounded-lg px-4 py-2 border border-secondary-700/50">
+	<nav class="flex items-center gap-2 text-sm bg-gray-800 rounded-lg px-4 py-3 border border-gray-600 mb-4">
 		for i, item := range items {
 			if i > 0 {
-				<span class="text-secondary-500 mx-2">/</span>
+				<span class="text-gray-400 mx-2">/</span>
 			}
 			if item.URL != "" {
-				<a href={ templ.SafeURL(item.URL) } class="text-primary-600 hover:text-primary-500 hover:underline transition-all duration-200 px-2 py-1 rounded">{ item.Label }</a>
+				<a href={ templ.SafeURL(item.URL) } class="text-orange-500 hover:text-orange-400 hover:underline transition-colors px-2 py-1 rounded">{ item.Label }</a>
 			} else {
-				<span class="text-secondary-200 font-medium px-2 py-1">{ item.Label }</span>
+				<span class="text-gray-200 font-medium px-2 py-1">{ item.Label }</span>
 			}
 		}
 	</nav>
+}
+
+templ ExperimentHeader(title, description string) {
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+		<div class="flex items-center justify-between">
+			<div class="flex items-center gap-4">
+				<h1 class="text-2xl font-bold text-secondary-50">{ title }</h1>
+				<span class="text-secondary-500">•</span>
+				<p class="text-secondary-400">{ description }</p>
+			</div>
+			<a href="/" class="text-sm text-secondary-400 hover:text-secondary-300 underline hover:no-underline transition-all px-3 py-1 rounded">
+				← Back to Experiments
+			</a>
+		</div>
+	</div>
 }
 
 type BreadcrumbItem struct {
