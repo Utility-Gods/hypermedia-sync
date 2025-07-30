@@ -168,6 +168,7 @@ func main() {
 
 	// Routes
 	e.GET("/", indexHandler)
+	e.GET("/health", healthHandler)
 	e.GET("/events", sseHandler)
 	e.POST("/toggle/:id", toggleHandler)
 
@@ -353,4 +354,11 @@ func toggleHandler(c echo.Context) error {
 
 	// Return no content since we're using hx-swap="none"
 	return c.NoContent(204)
+}
+
+func healthHandler(c echo.Context) error {
+	return c.JSON(200, map[string]string{
+		"status": "healthy",
+		"service": "hypermedia-sync",
+	})
 }

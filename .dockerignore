@@ -1,7 +1,60 @@
+# Git
 .git
 .gitignore
+
+# CI/CD
+.github
+
+# Documentation
 README.md
-docs/
 *.md
+docs/
+
+# Development files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Node.js (if any)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Go specific
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+go.work.sum
+
+# Build artifacts (exclude the built binary in tmp/)
+packages/go-htmx/tmp/
+
+# Docker files (exclude from build context)
 Dockerfile
 .dockerignore
