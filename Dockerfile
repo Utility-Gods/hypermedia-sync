@@ -1,8 +1,8 @@
 # Build stage
 FROM golang:1.24-alpine AS builder
 
-# Install templ, node/npm, and other build dependencies
-RUN apk --no-cache add wget nodejs npm curl && \
+# Install build dependencies
+RUN apk --no-cache add wget && \
     go install github.com/a-h/templ/cmd/templ@latest
 
 WORKDIR /app
@@ -18,9 +18,6 @@ COPY . .
 
 # Generate templ files
 RUN templ generate
-
-# Build CSS using Taskfile
-RUN npm install -g @go-task/task && task build
 
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
