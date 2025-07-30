@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
+	"time"
 
 	"hypermedia-sync/internal/experiments/checkboxes"
 	"hypermedia-sync/internal/handlers"
@@ -10,7 +12,35 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"golang.org/x/time/rate"
 )
+
+func configureRateLimiter() echo.MiddlewareFunc {
+	config := middleware.RateLimiterConfig{
+		Skipper: middleware.DefaultSkipper,
+		Store: middleware.NewRateLimiterMemoryStoreWithConfig(
+			middleware.RateLimiterMemoryStoreConfig{
+				Rate:      rate.Limit(10),  // 10 requests per second (higher for real-time app)
+				Burst:     20,              // Allow bursts of up to 20 requests
+				ExpiresIn: 1 * time.Minute, // Reset counters after 1 minute of inactivity
+			},
+		),
+		IdentifierExtractor: func(ctx echo.Context) (string, error) {
+			id := ctx.RealIP()
+			return id, nil
+		},
+		ErrorHandler: func(context echo.Context, err error) error {
+			fmt.Printf("Rate limiter error: %v\n", err)
+			return context.JSON(http.StatusInternalServerError, map[string]string{"error": "Internal Server Error"})
+		},
+		DenyHandler: func(context echo.Context, identifier string, err error) error {
+			return context.JSON(http.StatusTooManyRequests, map[string]string{
+				"error": "Rate limit exceeded. Please slow down and try again.",
+			})
+		},
+	}
+	return middleware.RateLimiterWithConfig(config)
+}
 
 func main() {
 	// Initialize SSE hub
@@ -19,6 +49,7 @@ func main() {
 
 	e := echo.New()
 	e.Use(middleware.Recover())
+	e.Use(configureRateLimiter())
 	e.Use(middleware.CORS())
 
 	// Serve static files
