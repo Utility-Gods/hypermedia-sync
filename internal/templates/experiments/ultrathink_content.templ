@@ -175,9 +175,7 @@ templ UltraThinkScript(originatorID string) {
 								return;
 							}
 							
-							// Check if data contains a complete SVG (after clearing) or just an element
 							if (evt.detail.data.includes('<svg')) {
-								// Complete SVG received - extract the inner elements
 								var parser = new DOMParser();
 								var svgDoc = parser.parseFromString(evt.detail.data, 'image/svg+xml');
 								var receivedSvg = svgDoc.documentElement;
@@ -207,24 +205,11 @@ templ UltraThinkScript(originatorID string) {
 					}
 				});
 				
-				// Log HTMX SSE connection events
-				document.addEventListener('htmx:sseOpen', function(evt) {
-					console.log('[HTMX SSE] Connection opened:', evt);
-				});
-				
-				document.addEventListener('htmx:sseError', function(evt) {
-					console.log('[HTMX SSE] Connection error:', evt);
-				});
-				
-				document.addEventListener('htmx:sseClose', function(evt) {
-					console.log('[HTMX SSE] Connection closed:', evt);
-				});
 				var toolSelect = document.getElementById('tool-select');
 				var colorPicker = document.getElementById('color-picker');
 				var brushSizeSlider = document.getElementById('brush-size');
 				var sizeDisplay = document.getElementById('size-display');
 				
-				// Update tool settings
 				toolSelect.addEventListener('change', function() {
 					currentTool = this.value;
 					updateCursor();

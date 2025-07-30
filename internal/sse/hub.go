@@ -75,10 +75,7 @@ func (h *Hub) Run() {
 
 		case event := <-h.broadcast:
 			h.connMu.RLock()
-			fmt.Printf("Broadcasting event '%s' to %d connections (excluding: %s)\n", event.Name, len(h.connections), event.ExcludeID)
-			// Broadcast to all connections except the excluded ID
 			for connID, conn := range h.connections {
-				fmt.Printf("  Connection ID: %s, Exclude ID: %s, Will broadcast: %t\n", connID, event.ExcludeID, connID != event.ExcludeID)
 				if connID != event.ExcludeID {
 					go func(c *Connection) {
 						defer func() {
@@ -87,22 +84,17 @@ func (h *Hub) Run() {
 							}
 						}()
 						
-						// Check if connection is still valid
 						select {
 						case <-c.Done:
-							// Connection is closed, skip
 							return
 						default:
-							// Connection is active, proceed with broadcast
 						}
 						
-						// Check if writer is not nil
 						if c.Writer == nil {
 							fmt.Printf("Warning: Writer is nil for connection %s\n", c.ID)
 							return
 						}
 						
-						// Format SSE event data properly - replace newlines with data: prefix
 						eventData := strings.ReplaceAll(event.Data, "\n", "\ndata: ")
 						_, err := fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", event.Name, eventData)
 						if err != nil {
