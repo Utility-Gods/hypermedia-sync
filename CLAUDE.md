@@ -2,20 +2,26 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Development Warnings
+- NEVER ADD COMMENTS TO THE CODE< AND IF YOU SEE A COMMENT IN THE CODE that is AI generated, remove it/ only remove comments that are in the CODE you are editing
+
+
 ## Project Overview
 
-This is a repository for demonstrating **Hypermedia-Driven Real-Time Synchronization with SSE + HTMX** across different technology stacks. The project showcases implementations using various frameworks while maintaining HTMX as the constant client-side driver.
+This is a Go application demonstrating **Hypermedia-Driven Real-Time Synchronization with SSE + HTMX** through various interactive experiments. The project showcases different real-time patterns while maintaining HTMX as the client-side driver and true hypermedia compliance.
 
 ## Core Understanding
 
 For a comprehensive understanding of the pattern and architecture, see [docs/understanding.md](docs/understanding.md). This document merges all architectural knowledge and implementation details.
 
-## Current Implementations
+## Current Structure
 
-1. **go-htmx**: Go + Echo framework implementation (complete)
-   - Full SSE support with real-time updates
-   - Dark theme with orange/navy color scheme
-   - 10,000 checkbox demo
+The application is organized as a single Go service with modular experiments:
+
+- **Main Application**: Echo framework with SSE hub infrastructure
+- **Experiments Framework**: Organized experiments in `/experiments/` directory  
+- **Current Experiments**:
+  - `checkboxes/`: 10,000 synchronized checkboxes demonstration
 
 ## Lessons Learned
 
@@ -81,10 +87,29 @@ Page Component
 - The pattern is language-agnostic and can be implemented in any server framework
 - Focus on HTML as the universal interface for both initial loads and real-time updates
 
-## When Implementing New Stacks
+## Adding New Experiments
 
-1. Set up organization-scoped SSE hubs
-2. Implement dual response handlers (HTMX + SSE)
-3. Create semantic template separation (*Updated vs *SSE)
-4. Add originator ID tracking and filtering
-5. Test with multiple browser tabs for real-time sync verification
+1. Create new directory in `/experiments/[experiment-name]/`
+2. Implement handler.go with Echo route handlers
+3. Add experiment to the main experiments list in `handlers/experiments.go`
+4. Include proper README.md documentation
+5. Follow SSE hub patterns for real-time features
+6. Test with multiple browser tabs for sync verification
+
+## Application Structure
+
+```
+hypermedia-sync/
+├── main.go                 # Application entry point
+├── handlers/               # Core route handlers
+│   ├── experiments.go      # Experiments listing page
+│   └── sse.go             # SSE and health endpoints
+├── sse/                   # SSE hub infrastructure
+│   └── hub.go
+├── experiments/           # Individual experiments
+│   └── checkboxes/        # 10K checkboxes experiment
+│       ├── handler.go
+│       └── README.md
+├── static/                # CSS, JS, assets
+└── Dockerfile
+```

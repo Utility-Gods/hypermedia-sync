@@ -1,16 +1,19 @@
 # Build stage
 FROM golang:1.24-alpine AS builder
 
+# Install wget for health checks
+RUN apk --no-cache add wget
+
 WORKDIR /app
 
 # Copy go mod files
-COPY packages/go-htmx/go.mod packages/go-htmx/go.sum ./
+COPY go.mod go.sum ./
 
 # Download dependencies
 RUN go mod download
 
 # Copy source code
-COPY packages/go-htmx/ .
+COPY . .
 
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
@@ -18,8 +21,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 # Final stage
 FROM alpine:latest
 
-# Install ca-certificates for HTTPS
-RUN apk --no-cache add ca-certificates
+# Install ca-certificates and wget for HTTPS and health checks
+RUN apk --no-cache add ca-certificates wget
 
 WORKDIR /root/
 

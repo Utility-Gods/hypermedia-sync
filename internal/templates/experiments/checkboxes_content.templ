@@ -1,0 +1,143 @@
+package experiments
+
+import (
+	"fmt"
+	"hypermedia-sync/internal/templates/layout"
+)
+
+var checkboxScriptHandle = templ.NewOnceHandle()
+
+type CheckboxData struct {
+	ID      int
+	Checked bool
+}
+
+type CheckboxPageData struct {
+	Checkboxes   []CheckboxData
+	OriginatorID string
+	OnlineCount  int
+}
+
+templ CheckboxesPageFull(data CheckboxPageData) {
+	@layout.AppWithSSE("10,000 Checkboxes - Hypermedia Sync Experiment", data.OnlineCount, data.OriginatorID) {
+		@CheckboxesPageContent(data)
+	}
+}
+
+templ CheckboxesPageContent(data CheckboxPageData) {
+	@CheckboxesHero()
+	@CheckboxesContainer(data.Checkboxes)
+	@CheckboxesScript(data.OriginatorID)
+}
+
+templ CheckboxesHero() {
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+		@layout.Breadcrumb([]layout.BreadcrumbItem{
+			{Label: "Experiments", URL: "/"},
+			{Label: "10,000 Checkboxes", URL: ""},
+		})
+	</div>
+	
+	<div class="text-center py-8 px-4">
+		<h1 class="text-3xl md:text-4xl font-bold text-secondary-50 mb-3">10,000 Checkboxes</h1>
+		<p class="text-lg text-secondary-300 max-w-2xl mx-auto">A Real-Time Hypermedia Experiment</p>
+	</div>
+}
+
+templ CheckboxesContainer(checkboxes []CheckboxData) {
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+		<div class="bg-secondary-800/30 rounded-xl border border-secondary-700 h-[60vh] overflow-auto">
+			<div class="p-6">
+				<div class="flex flex-wrap gap-3" id="team-section">
+					for _, cb := range checkboxes {
+						@CheckboxItem(cb)
+					}
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+templ CheckboxItem(cb CheckboxData) {
+	<div id={ "checkbox-" + fmt.Sprintf("%d", cb.ID) } sse-swap={ "checkbox-" + fmt.Sprintf("%d", cb.ID) + "-updated" } hx-swap="outerHTML">
+		<label for={ "cb-" + fmt.Sprintf("%d", cb.ID) } class={ "flex items-center gap-2 p-3 rounded-lg border transition-colors duration-200 cursor-pointer group min-w-[5rem]", templ.KV("bg-secondary-900/40 border-secondary-600/30 hover:bg-secondary-700/50 hover:border-primary-600/40", !cb.Checked), templ.KV("bg-primary-600/20 border-primary-500 hover:bg-primary-600/30 hover:border-primary-400", cb.Checked) }>
+			<input
+				type="checkbox"
+				id={ "cb-" + fmt.Sprintf("%d", cb.ID) }
+				class="w-4 h-4 accent-primary-600 bg-secondary-800 border-secondary-500 rounded focus:ring-primary-500 focus:ring-1 flex-shrink-0"
+				if cb.Checked {
+					checked
+				}
+				hx-post={ "/experiments/checkboxes/toggle/" + fmt.Sprintf("%d", cb.ID) }
+				hx-swap="outerHTML"
+				hx-target={ "#checkbox-" + fmt.Sprintf("%d", cb.ID) }
+			/>
+			<span class={ "text-xs transition-colors font-mono leading-tight", templ.KV("text-secondary-400 group-hover:text-secondary-300", !cb.Checked), templ.KV("text-primary-300 group-hover:text-primary-200", cb.Checked) }>{ fmt.Sprintf("%d", cb.ID) }</span>
+		</label>
+	</div>
+}
+
+templ SingleCheckboxHTML(id int, checked bool) {
+	<input
+		type="checkbox"
+		id={ "cb-" + fmt.Sprintf("%d", id) }
+		class="w-4 h-4 accent-primary-600 bg-secondary-800 border-secondary-500 rounded focus:ring-primary-500 focus:ring-1 mb-2 flex-shrink-0"
+		if checked {
+			checked
+		}
+		hx-post={ "/experiments/checkboxes/toggle/" + fmt.Sprintf("%d", id) }
+		hx-swap="none"
+	/>
+	<span class={ "text-xs transition-colors text-center font-mono leading-tight", templ.KV("text-secondary-400", !checked), templ.KV("text-primary-300", checked) }>{ fmt.Sprintf("%d", id) }</span>
+}
+
+templ CheckboxItemSSE(cb CheckboxData) {
+	<input
+		type="checkbox"
+		id={ "cb-" + fmt.Sprintf("%d", cb.ID) }
+		class="w-4 h-4 accent-primary-600 bg-secondary-800 border-secondary-500 rounded focus:ring-primary-500 focus:ring-1 mb-2 flex-shrink-0"
+		if cb.Checked {
+			checked
+		}
+		hx-post={ "/experiments/checkboxes/toggle/" + fmt.Sprintf("%d", cb.ID) }
+		hx-swap="none"
+	/>
+	<span class={ "text-xs transition-colors text-center font-mono leading-tight", templ.KV("text-secondary-400", !cb.Checked), templ.KV("text-primary-300", cb.Checked) }>{ fmt.Sprintf("%d", cb.ID) }</span>
+}
+
+templ CheckboxItemSSEComplete(cb CheckboxData) {
+	<div id={ "checkbox-" + fmt.Sprintf("%d", cb.ID) } sse-swap={ "checkbox-" + fmt.Sprintf("%d", cb.ID) + "-updated" } hx-swap="outerHTML">
+		<label for={ "cb-" + fmt.Sprintf("%d", cb.ID) } class={ "flex items-center gap-2 p-3 rounded-lg border transition-colors duration-200 cursor-pointer group min-w-[5rem]", templ.KV("bg-secondary-900/40 border-secondary-600/30 hover:bg-secondary-700/50 hover:border-primary-600/40", !cb.Checked), templ.KV("bg-primary-600/20 border-primary-500 hover:bg-primary-600/30 hover:border-primary-400", cb.Checked) }>
+			<input
+				type="checkbox"
+				id={ "cb-" + fmt.Sprintf("%d", cb.ID) }
+				class="w-4 h-4 accent-primary-600 bg-secondary-800 border-secondary-500 rounded focus:ring-primary-500 focus:ring-1 flex-shrink-0"
+				if cb.Checked {
+					checked
+				}
+				hx-post={ "/experiments/checkboxes/toggle/" + fmt.Sprintf("%d", cb.ID) }
+				hx-swap="outerHTML"
+				hx-target={ "#checkbox-" + fmt.Sprintf("%d", cb.ID) }
+			/>
+			<span class={ "text-xs transition-colors font-mono leading-tight", templ.KV("text-secondary-400 group-hover:text-secondary-300", !cb.Checked), templ.KV("text-primary-300 group-hover:text-primary-200", cb.Checked) }>{ fmt.Sprintf("%d", cb.ID) }</span>
+		</label>
+	</div>
+}
+
+templ CheckboxesScript(originatorID string) {
+	@templ.JSONScript("originatorId", originatorID)
+	@checkboxScriptHandle.Once() {
+		<script type="text/javascript">
+			(function () {
+				var originatorId = JSON.parse(document.getElementById('originatorId').textContent);
+				
+				// Add originator ID to all HTMX requests
+				document.addEventListener('htmx:configRequest', function(evt) {
+					evt.detail.headers['X-Originator-ID'] = originatorId;
+				});
+				
+				console.log('Checkbox SSE initialized with originator:', originatorId);
+			})();
+		</script>
+	}
+}

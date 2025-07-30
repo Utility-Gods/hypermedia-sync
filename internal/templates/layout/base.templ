@@ -1,0 +1,46 @@
+package layout
+
+import (
+	"fmt"
+	"hypermedia-sync/internal/templates/icons"
+)
+
+templ Header(onlineCount int) {
+	<header class="sticky top-0 z-50 backdrop-blur-xl bg-secondary-900/95 border-b border-primary-600/30 shadow-lg">
+		<div class="max-w-6xl mx-auto px-6 py-3 flex justify-between items-center">
+			<div>
+				<h1 class="text-2xl font-bold tracking-tight">
+					<a href="/" class="text-primary-600 hover:text-primary-500 transition-all duration-300">
+						Hypermedia Sync Experiments
+					</a>
+				</h1>
+			</div>
+			<div class="flex items-center gap-6">
+				<div class="flex items-center gap-3 px-5 py-3 bg-primary-600/15 border border-primary-500/40 rounded-full backdrop-blur-sm" id="online-users-container" sse-swap="online-count-updated" hx-swap="innerHTML">
+					<span class="relative flex h-2 w-2">
+						<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+						<span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+					</span>
+					<span class="text-secondary-50 font-semibold text-sm">{ fmt.Sprintf("%d", onlineCount) } users online</span>
+				</div>
+				<a href="https://github.com/Utility-Gods/hypermedia-sync" target="_blank" class="flex items-center gap-2 px-5 py-3 bg-white/10 border border-white/20 rounded-full text-secondary-200 hover:text-secondary-50 hover:bg-white/15 hover:border-white/30 font-semibold text-sm transition-all duration-300">
+					@icons.GitHub()
+					View on GitHub
+				</a>
+			</div>
+		</div>
+	</header>
+}
+
+templ Hero(title, subtitle string) {
+	<div class="text-center py-16 px-8">
+		<h1 class="text-5xl font-bold text-secondary-50 mb-4">{ title }</h1>
+		<p class="text-xl text-secondary-300 max-w-3xl mx-auto">{ subtitle }</p>
+	</div>
+}
+
+templ OnlineCounter(count int) {
+	<div class="online-users" id="online-users-container" sse-swap="online-count-updated" hx-swap="innerHTML">
+		<span class="online-count">{ fmt.Sprintf("%d", count) } users online</span>
+	</div>
+}

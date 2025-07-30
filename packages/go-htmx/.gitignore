@@ -1,9 +1,0 @@
-# Binary
-main
-hypermedia-sync-go
-
-# Environment
-.env
-
-# macOS
-.DS_Store

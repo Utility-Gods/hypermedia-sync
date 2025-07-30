@@ -1,6 +1,12 @@
 # Go binary
 packages/go-htmx/main
 packages/go-htmx/hypermedia-sync-go
+bin/
+main
+
+# Build tools
+tailwindcss*
+static/dist/
 
 # Environment
 .env

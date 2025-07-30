@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@theme {
+  /* Primary Colors - Vibrant Orange/Red (#f54a00) */
+  --color-primary-50: #fff7ed;
+  --color-primary-100: #ffedd5;
+  --color-primary-200: #fed7aa;
+  --color-primary-300: #fdba74;
+  --color-primary-400: #fb923c;
+  --color-primary-500: #f97316;
+  --color-primary-600: #f54a00;
+  --color-primary-700: #c2410c;
+  --color-primary-800: #9a3412;
+  --color-primary-900: #7c2d12;
+
+  /* Secondary Colors - Very Dark Navy Blue (terminal dark) */
+  --color-secondary-50: #f8fafc;
+  --color-secondary-100: #f1f5f9;
+  --color-secondary-200: #e2e8f0;
+  --color-secondary-300: #cbd5e1;
+  --color-secondary-400: #94a3b8;
+  --color-secondary-500: #64748b;
+  --color-secondary-600: #475569;
+  --color-secondary-700: #334155;
+  --color-secondary-800: #1e293b;
+  --color-secondary-900: #0f172a;
+
+  /* Neutral Colors (OKLCH color space) */
+  --color-neutral-50: oklch(0.98 0 0);
+  --color-neutral-100: oklch(0.95 0 0);
+  --color-neutral-200: oklch(0.9 0 0);
+  --color-neutral-300: oklch(0.82 0 0);
+  --color-neutral-400: oklch(0.65 0 0);
+  --color-neutral-500: oklch(0.5 0 0);
+  --color-neutral-600: oklch(0.35 0 0);
+  --color-neutral-700: oklch(0.25 0 0);
+  --color-neutral-800: oklch(0.18 0 0);
+  --color-neutral-900: oklch(0.15 0 0);
+
+  /* Semantic Colors (OKLCH color space) */
+  --color-success: oklch(0.45 0.15 145);
+  --color-success-bg: oklch(0.95 0.05 145);
+  --color-success-border: oklch(0.85 0.1 145);
+
+  --color-error: oklch(0.55 0.22 25);
+  --color-error-bg: oklch(0.98 0.02 25);
+  --color-error-border: oklch(0.9 0.1 25);
+
+  --color-warning: oklch(0.65 0.18 65);
+  --color-warning-bg: oklch(0.95 0.05 65);
+  --color-warning-border: oklch(0.9 0.12 65);
+
+  --color-info: oklch(0.55 0.15 230);
+  --color-info-bg: oklch(0.95 0.05 230);
+  --color-info-border: oklch(0.85 0.1 230);
+
+  /* Custom animations */
+  --animate-ping: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+  --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-bounce: bounce 1s infinite;
+  --animate-spin: spin 1s linear infinite;
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Base Styles */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(135deg, var(--color-secondary-900) 0%, var(--color-secondary-800) 100%);
+  min-height: 100vh;
+  color: var(--color-secondary-50);
+}

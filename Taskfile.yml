@@ -1,0 +1,109 @@
+version: "3"
+
+dotenv: [".env"]
+
+tasks:
+  init:
+    desc: "Install all required development tools"
+    cmds:
+      - echo "Installing development tools..."
+      - |
+        # Ensure GOPATH is set and in PATH
+        export GOPATH="${GOPATH:-$HOME/go}"
+        export PATH="$GOPATH/bin:$PATH"
+        
+        echo "Installing templ..."
+        go install github.com/a-h/templ/cmd/templ@latest
+        
+        echo "Installing air..."
+        go install github.com/air-verse/air@latest
+        
+        # Verify installations
+        echo "Verifying installations..."
+        which templ || echo "Warning: templ not found in PATH"
+        which air || echo "Warning: air not found in PATH"
+        
+        # Add PATH to shell configuration if not already present
+        SHELL_RC="$HOME/.$(basename $SHELL)rc"
+        if ! grep -q "GOPATH/bin" "$SHELL_RC" 2>/dev/null; then
+          echo 'export PATH="$HOME/go/bin:$PATH"' >> "$SHELL_RC"
+          echo "Added GOPATH/bin to $SHELL_RC. Please restart your terminal or run: source $SHELL_RC"
+        fi
+      - task: download-tailwind
+    silent: false
+
+  download-tailwind:
+    cmds:
+      - |
+        if [ ! -f ./tailwindcss ]; then
+          echo "Downloading Tailwind CSS v4 standalone CLI..."
+          if [ "$(uname)" == "Darwin" ]; then
+            # macOS
+            curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v4.1.10/tailwindcss-macos-x64
+            mv tailwindcss-macos-x64 tailwindcss
+          elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+            # Linux
+            curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v4.1.10/tailwindcss-linux-x64
+            mv tailwindcss-linux-x64 tailwindcss
+          else
+            # Windows (assuming Git Bash or similar)
+            curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v4.1.10/tailwindcss-windows-x64.exe
+            mv tailwindcss-windows-x64.exe tailwindcss.exe
+          fi
+          chmod +x tailwindcss*
+        fi
+        echo "Tailwind CLI path: $(pwd)/tailwindcss"
+        ls -la ./tailwindcss
+    silent: false
+
+  tailwind:
+    cmds:
+      - echo "Running Tailwind CSS build..."
+      - ./tailwindcss -i ./static/css/app.css -o ./static/dist/styles.css --minify
+      - echo "Tailwind CSS build complete. Output file:"
+      - ls -la ./static/dist/styles.css
+    silent: false
+
+  tailwind-watch:
+    cmds:
+      - echo "Running Tailwind CSS in watch mode..."
+      - ./tailwindcss -i ./static/css/app.css -o ./static/dist/styles.css --watch
+    silent: false
+
+  templ:
+    cmds:
+      - templ generate --watch
+    silent: true
+
+  air:
+    cmds:
+      - air
+    silent: true
+
+  dev:
+    deps: [templ, air, tailwind-watch]
+    cmds:
+      - echo "Running all tasks concurrently"
+    silent: false
+
+  build:
+    cmds:
+      - echo "Building project for production..."
+      - templ generate
+      - ./tailwindcss -i ./static/css/app.css -o ./static/dist/styles.css --minify
+      - go build -o ./bin/app ./main.go
+    silent: false
+
+  clean:
+    cmds:
+      - rm -rf ./bin
+      - rm -f ./static/dist/styles.css
+      - rm -f ./tailwindcss*
+    silent: true
+
+  production:
+    deps: [clean, build]
+    cmds:
+      - echo "Starting production server..."
+      - ./bin/app
+    silent: false

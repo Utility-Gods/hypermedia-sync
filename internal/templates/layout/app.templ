@@ -1,0 +1,82 @@
+package layout
+
+templ App(title string) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ title }</title>
+			<script src="/static/js/htmx.js"></script>
+			<script src="/static/js/sse.js"></script>
+			<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+			<link rel="stylesheet" href="/static/dist/styles.css"/>
+		</head>
+		<body hx-boost="true" hx-target="#main-content" class="min-h-screen flex flex-col">
+			@Header(0)
+			<div id="main-content" class="flex-1">
+				{ children... }
+			</div>
+			<footer class="mt-auto border-t border-secondary-700 bg-secondary-900/50 backdrop-blur-sm">
+				<div class="max-w-6xl mx-auto px-8 py-6 text-center">
+					<p class="text-secondary-300 text-sm">
+						Built with HTMX + Golang • Made by 
+						<a href="https://utilitygods.com" target="_blank" class="text-primary-600 hover:text-primary-500 font-medium transition-colors">UtilityGods</a>
+					</p>
+				</div>
+			</footer>
+		</body>
+	</html>
+}
+
+templ AppWithSSE(title string, onlineCount int, originatorID string) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ title }</title>
+			<script src="/static/js/htmx.js"></script>
+			<script src="/static/js/sse.js"></script>
+			<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+			<link rel="stylesheet" href="/static/dist/styles.css"/>
+		</head>
+		<body class="min-h-screen flex flex-col">
+			<div hx-ext="sse" sse-connect={ "/events?originator=" + originatorID } class="flex-1 flex flex-col">
+				@Header(onlineCount)
+				<div class="flex-1">
+					{ children... }
+				</div>
+			</div>
+			<footer class="mt-auto border-t border-secondary-700 bg-secondary-900/50 backdrop-blur-sm">
+				<div class="max-w-6xl mx-auto px-8 py-6 text-center">
+					<p class="text-secondary-300 text-sm">
+						Built with HTMX + Golang • Made by 
+						<a href="https://utilitygods.com" target="_blank" class="text-primary-600 hover:text-primary-500 font-medium transition-colors">UtilityGods</a>
+					</p>
+				</div>
+			</footer>
+		</body>
+	</html>
+}
+
+
+templ Breadcrumb(items []BreadcrumbItem) {
+	<nav class="flex items-center gap-1 text-sm bg-secondary-800/30 rounded-lg px-4 py-2 border border-secondary-700/50">
+		for i, item := range items {
+			if i > 0 {
+				<span class="text-secondary-500 mx-2">/</span>
+			}
+			if item.URL != "" {
+				<a href={ templ.SafeURL(item.URL) } class="text-primary-600 hover:text-primary-500 hover:underline transition-all duration-200 px-2 py-1 rounded">{ item.Label }</a>
+			} else {
+				<span class="text-secondary-200 font-medium px-2 py-1">{ item.Label }</span>
+			}
+		}
+	</nav>
+}
+
+type BreadcrumbItem struct {
+	Label string
+	URL   string
+}
