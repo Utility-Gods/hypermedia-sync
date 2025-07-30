@@ -19,7 +19,7 @@ type CheckboxPageData struct {
 }
 
 templ CheckboxesPageFull(data CheckboxPageData) {
-	@layout.AppWithSSE("10,000 Checkboxes - Hypermedia Sync Experiment", data.OnlineCount, data.OriginatorID) {
+	@layout.AppWithSSE("10,000 Checkboxes Real-Time Demo - HTMX + SSE Hypermedia Sync", data.OnlineCount, data.OriginatorID) {
 		@CheckboxesPageContent(data)
 	}
 }

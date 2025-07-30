@@ -1,0 +1,64 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e293b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  
+  <!-- Grid pattern -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#334155" stroke-width="1" opacity="0.3"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  
+  <!-- Main content -->
+  <g transform="translate(100, 150)">
+    <!-- Title -->
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="72" font-weight="bold" fill="#f8fafc">
+      Hypermedia Sync
+    </text>
+    <text x="0" y="80" font-family="Inter, sans-serif" font-size="72" font-weight="bold" fill="#f54a00">
+      Experiments
+    </text>
+    
+    <!-- Subtitle -->
+    <text x="0" y="140" font-family="Inter, sans-serif" font-size="32" fill="#cbd5e1">
+      Real-Time HTMX + SSE Demonstrations
+    </text>
+    
+    <!-- Features -->
+    <g transform="translate(0, 200)">
+      <text x="0" y="0" font-family="Inter, sans-serif" font-size="24" fill="#94a3b8">
+        ✨ Interactive hypermedia patterns
+      </text>
+      <text x="0" y="40" font-family="Inter, sans-serif" font-size="24" fill="#94a3b8">
+        🔄 Real-time synchronization
+      </text>
+      <text x="0" y="80" font-family="Inter, sans-serif" font-size="24" fill="#94a3b8">
+        ⚡ Server-Sent Events + HTMX
+      </text>
+    </g>
+  </g>
+  
+  <!-- Logo/Icon -->
+  <g transform="translate(950, 100)">
+    <rect width="180" height="180" rx="20" fill="#f54a00"/>
+    <text x="90" y="110" font-family="Inter, sans-serif" font-size="48" font-weight="bold" fill="white" text-anchor="middle">
+      H
+    </text>
+    <circle cx="160" cy="40" r="15" fill="#00ff88">
+      <animate attributeName="r" values="10;20;10" dur="2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  
+  <!-- URL -->
+  <text x="100" y="580" font-family="Inter, sans-serif" font-size="28" fill="#64748b">
+    hypermedia.utilitygods.com
+  </text>
+</svg>

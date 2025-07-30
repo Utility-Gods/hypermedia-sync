@@ -8,7 +8,7 @@ package layout
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func App(title string) templ.Component {
+func Head(title string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -29,20 +29,57 @@ func App(title string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout/app.templ`, Line: 9, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout/app.templ`, Line: 6, Col: 15}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><script src=\"/static/js/htmx.js\"></script><script src=\"/static/js/sse.js\"></script><link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap\" rel=\"stylesheet\"><link rel=\"stylesheet\" href=\"/static/dist/styles.css\"></head><body hx-boost=\"true\" hx-target=\"#main-content\" class=\"min-h-screen flex flex-col\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><!-- SEO Meta Tags --><meta name=\"description\" content=\"Explore real-time hypermedia synchronization with HTMX and Server-Sent Events. Interactive experiments demonstrating reactive UI patterns, live updates, and modern web architecture without JavaScript frameworks.\"><meta name=\"keywords\" content=\"HTMX, hypermedia, SSE, server-sent events, real-time, reactive UI, Go, Golang, web development, interactive experiments, live updates, hx-swap, hypermedia-driven applications\"><meta name=\"author\" content=\"UtilityGods\"><meta name=\"robots\" content=\"index, follow\"><link rel=\"canonical\" href=\"https://hypermedia.utilitygods.com\"><!-- Open Graph / Facebook --><meta property=\"og:type\" content=\"website\"><meta property=\"og:url\" content=\"https://hypermedia.utilitygods.com\"><meta property=\"og:title\" content=\"Hypermedia Sync Experiments - Real-Time HTMX + SSE Demos\"><meta property=\"og:description\" content=\"Interactive demonstrations of hypermedia-driven real-time synchronization using HTMX and Server-Sent Events. Experience reactive UIs without complex JavaScript frameworks.\"><meta property=\"og:image\" content=\"https://hypermedia.utilitygods.com/static/img/og-image.svg\"><meta property=\"og:image:width\" content=\"1200\"><meta property=\"og:image:height\" content=\"630\"><meta property=\"og:site_name\" content=\"Hypermedia Sync Experiments\"><!-- Twitter --><meta property=\"twitter:card\" content=\"summary_large_image\"><meta property=\"twitter:url\" content=\"https://hypermedia.utilitygods.com\"><meta property=\"twitter:title\" content=\"Hypermedia Sync Experiments - Real-Time HTMX + SSE\"><meta property=\"twitter:description\" content=\"Interactive demonstrations of hypermedia-driven real-time synchronization using HTMX and Server-Sent Events. Experience reactive UIs without complex JavaScript frameworks.\"><meta property=\"twitter:image\" content=\"https://hypermedia.utilitygods.com/static/img/og-image.svg\"><meta property=\"twitter:creator\" content=\"@UtilityGods\"><!-- Favicon --><link rel=\"icon\" type=\"image/svg+xml\" href=\"/static/img/favicon.svg\"><meta name=\"theme-color\" content=\"#f54a00\"><!-- JSON-LD Structured Data --><script type=\"application/ld+json\">\n\t{\n\t\t\"@context\": \"https://schema.org\",\n\t\t\"@type\": \"WebApplication\",\n\t\t\"name\": \"Hypermedia Sync Experiments\",\n\t\t\"url\": \"https://hypermedia.utilitygods.com\",\n\t\t\"description\": \"Interactive demonstrations of hypermedia-driven real-time synchronization using HTMX and Server-Sent Events\",\n\t\t\"applicationCategory\": \"DeveloperApplication\",\n\t\t\"operatingSystem\": \"All\",\n\t\t\"browserRequirements\": \"Requires JavaScript and HTML5 SSE support\",\n\t\t\"creator\": {\n\t\t\t\"@type\": \"Organization\",\n\t\t\t\"name\": \"UtilityGods\",\n\t\t\t\"url\": \"https://utilitygods.com\"\n\t\t},\n\t\t\"keywords\": [\"HTMX\", \"hypermedia\", \"SSE\", \"real-time\", \"reactive UI\", \"Go\", \"web development\"],\n\t\t\"programmingLanguage\": [\"Go\", \"JavaScript\", \"HTML\"],\n\t\t\"screenshot\": \"https://hypermedia.utilitygods.com/static/img/og-image.svg\"\n\t}\n\t</script><!-- Preload and Scripts --><link rel=\"preconnect\" href=\"https://fonts.googleapis.com\"><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin><link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap\" rel=\"stylesheet\"><script src=\"/static/js/htmx.js\"></script><script src=\"/static/js/sse.js\"></script><link rel=\"stylesheet\" href=\"/static/dist/styles.css\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func App(title string) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var3 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var3 == nil {
+			templ_7745c5c3_Var3 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<!doctype html><html lang=\"en\"><head>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Head(title).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</head><body hx-boost=\"true\" hx-target=\"#main-content\" class=\"min-h-screen flex flex-col\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -50,15 +87,15 @@ func App(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div id=\"main-content\" class=\"flex-1\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div id=\"main-content\" class=\"flex-1\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ_7745c5c3_Var1.Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = templ_7745c5c3_Var3.Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div><footer class=\"mt-auto border-t border-secondary-700 bg-secondary-900/50 backdrop-blur-sm\"><div class=\"max-w-6xl mx-auto px-8 py-6 text-center\"><p class=\"text-secondary-300 text-sm\">Built with HTMX + Golang • Made by  <a href=\"https://utilitygods.com\" target=\"_blank\" class=\"text-primary-600 hover:text-primary-500 font-medium transition-colors\">UtilityGods</a></p></div></footer></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><footer class=\"mt-auto border-t border-secondary-700 bg-secondary-900/50 backdrop-blur-sm\"><div class=\"max-w-6xl mx-auto px-8 py-6 text-center\"><p class=\"text-secondary-300 text-sm\">Built with HTMX + Golang • Made by  <a href=\"https://utilitygods.com\" target=\"_blank\" class=\"text-primary-600 hover:text-primary-500 font-medium transition-colors\">UtilityGods</a></p></div></footer></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -82,38 +119,33 @@ func AppWithSSE(title string, onlineCount int, originatorID string) templ.Compon
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var3 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var3 == nil {
-			templ_7745c5c3_Var3 = templ.NopComponent
+		templ_7745c5c3_Var4 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var4 == nil {
+			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<!doctype html><html lang=\"en\"><head>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var4 string
-		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(title)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout/app.templ`, Line: 38, Col: 17}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+		templ_7745c5c3_Err = Head(title).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</title><script src=\"/static/js/htmx.js\"></script><script src=\"/static/js/sse.js\"></script><link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap\" rel=\"stylesheet\"><link rel=\"stylesheet\" href=\"/static/dist/styles.css\"></head><body class=\"min-h-screen flex flex-col\"><div hx-ext=\"sse\" sse-connect=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</head><body class=\"min-h-screen flex flex-col\"><div hx-ext=\"sse\" sse-connect=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs("/events?originator=" + originatorID)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout/app.templ`, Line: 45, Col: 71}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout/app.templ`, Line: 98, Col: 71}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" class=\"flex-1 flex flex-col\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" class=\"flex-1 flex flex-col\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -121,15 +153,15 @@ func AppWithSSE(title string, onlineCount int, originatorID string) templ.Compon
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"flex-1\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"flex-1\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ_7745c5c3_Var3.Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = templ_7745c5c3_Var4.Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div></div><footer class=\"mt-auto border-t border-secondary-700 bg-secondary-900/50 backdrop-blur-sm\"><div class=\"max-w-6xl mx-auto px-8 py-6 text-center\"><p class=\"text-secondary-300 text-sm\">Built with HTMX + Golang • Made by  <a href=\"https://utilitygods.com\" target=\"_blank\" class=\"text-primary-600 hover:text-primary-500 font-medium transition-colors\">UtilityGods</a></p></div></footer></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div></div><footer class=\"mt-auto border-t border-secondary-700 bg-secondary-900/50 backdrop-blur-sm\"><div class=\"max-w-6xl mx-auto px-8 py-6 text-center\"><p class=\"text-secondary-300 text-sm\">Built with HTMX + Golang • Made by  <a href=\"https://utilitygods.com\" target=\"_blank\" class=\"text-primary-600 hover:text-primary-500 font-medium transition-colors\">UtilityGods</a></p></div></footer></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -158,73 +190,73 @@ func Breadcrumb(items []BreadcrumbItem) templ.Component {
 			templ_7745c5c3_Var6 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<nav class=\"flex items-center gap-1 text-sm bg-secondary-800/30 rounded-lg px-4 py-2 border border-secondary-700/50\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<nav class=\"flex items-center gap-1 text-sm bg-secondary-800/30 rounded-lg px-4 py-2 border border-secondary-700/50\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for i, item := range items {
 			if i > 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<span class=\"text-secondary-500 mx-2\">/</span>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<span class=\"text-secondary-500 mx-2\">/</span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, " ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, " ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if item.URL != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<a href=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<a href=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var7 templ.SafeURL
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(item.URL))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout/app.templ`, Line: 71, Col: 37}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout/app.templ`, Line: 124, Col: 37}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" class=\"text-primary-600 hover:text-primary-500 hover:underline transition-all duration-200 px-2 py-1 rounded\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" class=\"text-primary-600 hover:text-primary-500 hover:underline transition-all duration-200 px-2 py-1 rounded\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(item.Label)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout/app.templ`, Line: 71, Col: 162}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout/app.templ`, Line: 124, Col: 162}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</a>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</a>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<span class=\"text-secondary-200 font-medium px-2 py-1\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<span class=\"text-secondary-200 font-medium px-2 py-1\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(item.Label)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout/app.templ`, Line: 73, Col: 71}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/layout/app.templ`, Line: 126, Col: 71}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</span>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</nav>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</nav>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
