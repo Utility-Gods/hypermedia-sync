@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"hypermedia-sync/internal/experiments/checkboxes"
+	"hypermedia-sync/internal/experiments/ultrathink"
 	"hypermedia-sync/internal/handlers"
 	"hypermedia-sync/internal/sse"
 
@@ -63,6 +64,10 @@ func main() {
 	// Experiment routes
 	e.GET("/experiments/checkboxes", checkboxes.CheckboxesHandler(hub))
 	e.POST("/experiments/checkboxes/toggle/:id", checkboxes.ToggleHandler(hub))
+	
+	e.GET("/experiments/ultrathink", ultrathink.UltraThinkHandler(hub))
+	e.POST("/experiments/ultrathink/draw", ultrathink.DrawHandler(hub))
+	e.POST("/experiments/ultrathink/clear", ultrathink.ClearCanvasHandler(hub))
 
 	// Start server on port from environment or 8080
 	port := os.Getenv("PORT")

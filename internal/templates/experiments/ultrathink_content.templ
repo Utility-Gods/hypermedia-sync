@@ -1,0 +1,394 @@
+package experiments
+
+import (
+	"fmt"
+	"strings"
+	"time"
+	"hypermedia-sync/internal/templates/layout"
+)
+
+func getAttribute(data, attr string) string {
+	parts := strings.Split(data, " ")
+	for _, part := range parts {
+		if strings.HasPrefix(part, attr+"=") {
+			value := strings.TrimPrefix(part, attr+"=")
+			return strings.Trim(value, "\"")
+		}
+	}
+	return ""
+}
+
+var ultrathinkScriptHandle = templ.NewOnceHandle()
+
+type DrawingElement struct {
+	ID       string    `json:"id"`
+	Type     string    `json:"type"` // "path", "rect", "circle", "text"
+	Data     string    `json:"data"` // SVG path data or element attributes
+	Color    string    `json:"color"`
+	User     string    `json:"user"`
+	Created  time.Time `json:"created"`
+}
+
+type CanvasState struct {
+	Elements []DrawingElement `json:"elements"`
+	Width    int              `json:"width"`
+	Height   int              `json:"height"`
+}
+
+type UltraThinkPageData struct {
+	Canvas       CanvasState
+	OriginatorID string
+	OnlineCount  int
+}
+
+templ UltraThinkPageFull(data UltraThinkPageData) {
+	@layout.AppWithSSE("ULTRATHINK - Collaborative Canvas - HTMX + SSE Hypermedia Sync", data.OnlineCount, data.OriginatorID) {
+		@UltraThinkPageContent(data)
+	}
+}
+
+templ UltraThinkPageContent(data UltraThinkPageData) {
+	@UltraThinkHero()
+	@UltraThinkToolbar(data.OriginatorID)
+	@UltraThinkCanvas(data.Canvas)
+	@UltraThinkScript(data.OriginatorID)
+}
+
+templ UltraThinkHero() {
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+		@layout.Breadcrumb([]layout.BreadcrumbItem{
+			{Label: "Experiments", URL: "/"},
+			{Label: "ULTRATHINK", URL: ""},
+		})
+	</div>
+	
+	<div class="text-center py-6 px-4">
+		<h1 class="text-3xl md:text-4xl font-bold text-secondary-50 mb-3">ULTRATHINK</h1>
+		<p class="text-lg text-secondary-300 max-w-2xl mx-auto">Collaborative Real-Time Canvas • Draw Together with Pure Hypermedia</p>
+	</div>
+}
+
+templ UltraThinkToolbar(originatorID string) {
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
+		<div class="bg-secondary-800/30 rounded-xl border border-secondary-700 p-4">
+			<div class="flex flex-wrap items-center gap-4">
+				<div class="flex items-center gap-2">
+					<label class="text-secondary-300 text-sm font-medium">Tool:</label>
+					<select id="tool-select" class="bg-secondary-700 border border-secondary-600 rounded-lg px-3 py-1 text-secondary-100 text-sm">
+						<option value="pen">Pen</option>
+						<option value="rect">Rectangle</option>
+						<option value="circle">Circle</option>
+						<option value="text">Text</option>
+					</select>
+				</div>
+				
+				<div class="flex items-center gap-2">
+					<label class="text-secondary-300 text-sm font-medium">Color:</label>
+					<input type="color" id="color-picker" value="#f54a00" class="w-8 h-8 rounded border border-secondary-600 bg-secondary-700"/>
+				</div>
+				
+				<div class="flex items-center gap-2">
+					<label class="text-secondary-300 text-sm font-medium">Size:</label>
+					<input type="range" id="brush-size" min="1" max="20" value="3" class="w-20"/>
+					<span id="size-display" class="text-secondary-300 text-sm w-6">3</span>
+				</div>
+				
+				<button 
+					id="clear-canvas-btn"
+					class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
+					hx-post="/experiments/ultrathink/clear"
+					hx-target="#canvas-container"
+					hx-swap="innerHTML"
+				>
+					Clear Canvas
+				</button>
+				
+				<div id="status-message" class="text-secondary-400 text-sm"></div>
+			</div>
+		</div>
+	</div>
+}
+
+templ UltraThinkCanvas(canvas CanvasState) {
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+		<div class="bg-secondary-800/30 rounded-xl border border-secondary-700 p-6">
+			<div id="canvas-container" class="flex justify-center" sse-swap="canvas-cleared" hx-swap="innerHTML">
+				@CanvasSVG(canvas)
+			</div>
+		</div>
+	</div>
+}
+
+templ CanvasSVG(canvas CanvasState) {
+	<svg 
+		id="canvas-svg" 
+		width={ fmt.Sprintf("%d", canvas.Width) } 
+		height={ fmt.Sprintf("%d", canvas.Height) } 
+		class="border border-secondary-600 bg-white rounded-lg cursor-crosshair"
+		sse-swap="canvas-element-added"
+		hx-swap="beforeend"
+	>
+		for _, element := range canvas.Elements {
+			@DrawingElementSVG(element)
+		}
+	</svg>
+}
+
+templ DrawingElementSVG(element DrawingElement) {
+	switch element.Type {
+		case "path":
+			<path d={ element.Data } stroke={ element.Color } stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+		case "rect":
+			<rect x={ getAttribute(element.Data, "x") } y={ getAttribute(element.Data, "y") } width={ getAttribute(element.Data, "width") } height={ getAttribute(element.Data, "height") } fill={ element.Color } opacity="0.7"/>
+		case "circle":
+			<circle cx={ getAttribute(element.Data, "cx") } cy={ getAttribute(element.Data, "cy") } r={ getAttribute(element.Data, "r") } fill={ element.Color } opacity="0.7"/>
+		case "text":
+			<text x={ getAttribute(element.Data, "x") } y={ getAttribute(element.Data, "y") } fill={ element.Color } font-family="Inter, sans-serif" font-size="16">{ getAttribute(element.Data, "text") }</text>
+	}
+}
+
+templ DrawingElementSSE(element DrawingElement) {
+	@DrawingElementSVG(element)
+}
+
+templ UltraThinkScript(originatorID string) {
+	@templ.JSONScript("ultrathinkOriginatorId", originatorID)
+	@ultrathinkScriptHandle.Once() {
+		<script type="text/javascript">
+			(function () {
+				var originatorId = JSON.parse(document.getElementById('ultrathinkOriginatorId').textContent);
+				var isDrawing = false;
+				var currentPath = '';
+				var currentTool = 'pen';
+				var currentColor = '#f54a00';
+				var brushSize = 3;
+				
+				// Get canvas and toolbar elements
+				var canvas = document.getElementById('canvas-svg');
+				
+				// Add originator ID to all HTMX requests
+				document.addEventListener('htmx:configRequest', function(evt) {
+					evt.detail.headers['X-Originator-ID'] = originatorId;
+				});
+				
+				// HTMX SSE debugging - let's trace all SSE events
+				console.log('Setting up HTMX SSE event listeners...');
+				
+				
+				// Listen for specific canvas events
+				document.addEventListener('htmx:sseMessage', function(evt) {
+					if (evt.detail.type === 'canvas-element-added') {
+						console.log('[CANVAS] Processing canvas-element-added event');
+						console.log('[CANVAS] Event data:', evt.detail.data);
+						
+						try {
+							// Parse SVG content with proper SVG namespace
+							var parser = new DOMParser();
+							var svgDoc = parser.parseFromString('<svg xmlns="http://www.w3.org/2000/svg">' + evt.detail.data + '</svg>', 'image/svg+xml');
+							var svgElement = svgDoc.documentElement.firstElementChild;
+							
+							console.log('[CANVAS] Parsed SVG element:', svgElement);
+							
+							if (svgElement) {
+								// Import the node to ensure proper namespace
+								var importedElement = document.importNode(svgElement, true);
+								canvas.appendChild(importedElement);
+								console.log('[CANVAS] SVG element successfully added to canvas');
+							} else {
+								console.error('[CANVAS] No SVG element found in parsed data');
+								console.error('[CANVAS] Raw data was:', evt.detail.data);
+							}
+						} catch (error) {
+							console.error('[CANVAS] Error processing canvas SSE event:', error);
+						}
+					}
+				});
+				
+				// Log HTMX SSE connection events
+				document.addEventListener('htmx:sseOpen', function(evt) {
+					console.log('[HTMX SSE] Connection opened:', evt);
+				});
+				
+				document.addEventListener('htmx:sseError', function(evt) {
+					console.log('[HTMX SSE] Connection error:', evt);
+				});
+				
+				document.addEventListener('htmx:sseClose', function(evt) {
+					console.log('[HTMX SSE] Connection closed:', evt);
+				});
+				var toolSelect = document.getElementById('tool-select');
+				var colorPicker = document.getElementById('color-picker');
+				var brushSizeSlider = document.getElementById('brush-size');
+				var sizeDisplay = document.getElementById('size-display');
+				
+				// Update tool settings
+				toolSelect.addEventListener('change', function() {
+					currentTool = this.value;
+					updateCursor();
+				});
+				
+				colorPicker.addEventListener('change', function() {
+					currentColor = this.value;
+				});
+				
+				brushSizeSlider.addEventListener('input', function() {
+					brushSize = this.value;
+					sizeDisplay.textContent = this.value;
+				});
+				
+				function updateCursor() {
+					switch(currentTool) {
+						case 'pen':
+							canvas.style.cursor = 'crosshair';
+							break;
+						case 'rect':
+						case 'circle':
+							canvas.style.cursor = 'copy';
+							break;
+						case 'text':
+							canvas.style.cursor = 'text';
+							break;
+					}
+				}
+				
+				// Drawing handlers
+				canvas.addEventListener('mousedown', startDrawing);
+				canvas.addEventListener('mousemove', draw);
+				canvas.addEventListener('mouseup', stopDrawing);
+				canvas.addEventListener('mouseleave', stopDrawing);
+				
+				function getMousePos(e) {
+					var rect = canvas.getBoundingClientRect();
+					return {
+						x: e.clientX - rect.left,
+						y: e.clientY - rect.top
+					};
+				}
+				
+				function startDrawing(e) {
+					if (currentTool === 'pen') {
+						isDrawing = true;
+						var pos = getMousePos(e);
+						currentPath = 'M' + pos.x + ',' + pos.y;
+					} else if (currentTool === 'text') {
+						var pos = getMousePos(e);
+						var text = prompt('Enter text:');
+						if (text) {
+							// Create text element immediately
+							var textElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+							textElement.id = 'temp-' + Date.now();
+							textElement.setAttribute('x', pos.x);
+							textElement.setAttribute('y', pos.y);
+							textElement.setAttribute('fill', currentColor);
+							textElement.setAttribute('font-family', 'Inter, sans-serif');
+							textElement.setAttribute('font-size', '16');
+							textElement.textContent = text;
+							canvas.appendChild(textElement);
+							
+							sendDrawingData('text', `x="${pos.x}" y="${pos.y}" text="${text}"`);
+						}
+					}
+				}
+				
+				function draw(e) {
+					if (!isDrawing || currentTool !== 'pen') return;
+					
+					var pos = getMousePos(e);
+					currentPath += ' L' + pos.x + ',' + pos.y;
+					
+					// Update preview path immediately for visual feedback
+					var previewPath = document.getElementById('preview-path');
+					if (!previewPath) {
+						previewPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+						previewPath.id = 'preview-path';
+						previewPath.setAttribute('stroke', currentColor);
+						previewPath.setAttribute('stroke-width', '3');
+						previewPath.setAttribute('fill', 'none');
+						previewPath.setAttribute('stroke-linecap', 'round');
+						previewPath.setAttribute('stroke-linejoin', 'round');
+						canvas.appendChild(previewPath);
+					}
+					previewPath.setAttribute('d', currentPath);
+				}
+				
+				function stopDrawing(e) {
+					if (!isDrawing) return;
+					isDrawing = false;
+					
+					if (currentTool === 'pen' && currentPath) {
+						// Remove preview path
+						var previewPath = document.getElementById('preview-path');
+						if (previewPath) {
+							previewPath.remove();
+						}
+						
+						// Create permanent path element immediately
+						var pathElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+						pathElement.id = 'temp-' + Date.now();
+						pathElement.setAttribute('d', currentPath);
+						pathElement.setAttribute('stroke', currentColor);
+						pathElement.setAttribute('stroke-width', '3');
+						pathElement.setAttribute('fill', 'none');
+						pathElement.setAttribute('stroke-linecap', 'round');
+						pathElement.setAttribute('stroke-linejoin', 'round');
+						canvas.appendChild(pathElement);
+						
+						// Send to server
+						sendDrawingData('path', currentPath);
+						currentPath = '';
+					}
+				}
+				
+				// Handle shape drawing (simplified - could be enhanced with drag-to-size)
+				canvas.addEventListener('click', function(e) {
+					if (currentTool === 'rect' || currentTool === 'circle') {
+						var pos = getMousePos(e);
+						var size = brushSize * 10; // Scale size for shapes
+						
+						if (currentTool === 'rect') {
+							// Create rect element immediately
+							var rectElement = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+							rectElement.id = 'temp-' + Date.now();
+							rectElement.setAttribute('x', pos.x-size/2);
+							rectElement.setAttribute('y', pos.y-size/2);
+							rectElement.setAttribute('width', size);
+							rectElement.setAttribute('height', size);
+							rectElement.setAttribute('fill', currentColor);
+							rectElement.setAttribute('opacity', '0.7');
+							canvas.appendChild(rectElement);
+							
+							sendDrawingData('rect', `x="${pos.x-size/2}" y="${pos.y-size/2}" width="${size}" height="${size}"`);
+						} else if (currentTool === 'circle') {
+							// Create circle element immediately
+							var circleElement = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+							circleElement.id = 'temp-' + Date.now();
+							circleElement.setAttribute('cx', pos.x);
+							circleElement.setAttribute('cy', pos.y);
+							circleElement.setAttribute('r', size/2);
+							circleElement.setAttribute('fill', currentColor);
+							circleElement.setAttribute('opacity', '0.7');
+							canvas.appendChild(circleElement);
+							
+							sendDrawingData('circle', `cx="${pos.x}" cy="${pos.y}" r="${size/2}"`);
+						}
+					}
+				});
+				
+				function sendDrawingData(type, data) {
+					// Send to server in background (no visual feedback needed since we already drew it)
+					fetch('/experiments/ultrathink/draw', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/x-www-form-urlencoded',
+							'X-Originator-ID': originatorId
+						},
+						body: `type=${type}&data=${encodeURIComponent(data)}&color=${encodeURIComponent(currentColor)}`
+					});
+				}
+				
+				updateCursor();
+				console.log('ULTRATHINK initialized with originator:', originatorId);
+			})();
+		</script>
+	}
+}

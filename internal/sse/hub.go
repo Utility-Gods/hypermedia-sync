@@ -75,8 +75,10 @@ func (h *Hub) Run() {
 
 		case event := <-h.broadcast:
 			h.connMu.RLock()
+			fmt.Printf("Broadcasting event '%s' to %d connections (excluding: %s)\n", event.Name, len(h.connections), event.ExcludeID)
 			// Broadcast to all connections except the excluded ID
 			for connID, conn := range h.connections {
+				fmt.Printf("  Connection ID: %s, Exclude ID: %s, Will broadcast: %t\n", connID, event.ExcludeID, connID != event.ExcludeID)
 				if connID != event.ExcludeID {
 					go func(c *Connection) {
 						defer func() {

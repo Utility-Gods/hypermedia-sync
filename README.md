@@ -2,6 +2,8 @@
 
 A Go application demonstrating **Hypermedia-Driven Real-Time Synchronization** using Server-Sent Events (SSE) and HTMX. This project showcases various interactive experiments that maintain true hypermedia compliance while providing seamless real-time collaboration.
 
+🌐 **Live Demo**: [hypermedia.utilitygods.com](https://hypermedia.utilitygods.com)
+
 ## 🎯 The Experiment
 
 Just trying to push the limits of hypermedia-driven synchronization. No WebSockets. No JSON. Just Server-Sent Events broadcasting tiny HTML snippets to connected browsers. HTMX swaps them into the DOM. Instant sync.

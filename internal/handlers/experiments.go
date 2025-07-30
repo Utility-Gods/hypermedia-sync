@@ -15,6 +15,13 @@ func ExperimentsListHandler(c echo.Context) error {
 			Path:        "/experiments/checkboxes",
 			Status:      "Active",
 		},
+		{
+			ID:          "ultrathink",
+			Name:        "ULTRATHINK",  
+			Description: "Collaborative real-time canvas where multiple users can draw, sketch, and think together using pure hypermedia",
+			Path:        "/experiments/ultrathink",
+			Status:      "Active",
+		},
 	}
 
 	if c.Request().Header.Get("HX-Request") == "true" {
