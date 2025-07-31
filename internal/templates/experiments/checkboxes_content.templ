@@ -6,6 +6,7 @@ import (
 	"hypermedia-sync/internal/templates/icons"
 )
 
+// Initialize script once per page load
 var checkboxScriptHandle = templ.NewOnceHandle()
 
 func countChecked(checkboxes []CheckboxData) int {
@@ -30,13 +31,13 @@ type CheckboxPageData struct {
 }
 
 templ CheckboxesPageFull(data CheckboxPageData) {
-	@layout.AppWithSSE("10,000 Checkboxes Real-Time Demo - HTMX + SSE Hypermedia Sync", data.OnlineCount, data.OriginatorID) {
+	@layout.App("10,000 Checkboxes Real-Time Demo - HTMX + SSE Hypermedia Sync") {
 		@CheckboxesPageContent(data)
 	}
 }
 
 templ CheckboxesPageContent(data CheckboxPageData) {
-	<div class="flex-1 flex flex-col">
+	<div class="flex-1 flex flex-col" data-experiment="checkboxes">
 		<div class="text-center py-4 border-b border-secondary-700">
 			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between max-w-7xl mx-auto px-4">
 				<div class="text-center sm:text-left">
@@ -46,7 +47,8 @@ templ CheckboxesPageContent(data CheckboxPageData) {
 				<div class="mt-2 sm:mt-0">
 					<div class="inline-flex items-center gap-2 px-3 py-1 bg-primary-600/20 border border-primary-500/40 rounded-full">
 						<span class="w-3 h-3 bg-green-500 rounded-full"></span>
-						<span id="checked-counter" class="text-sm font-semibold text-secondary-50">
+						<span id="checked-counter" class="text-sm font-semibold text-secondary-50" 
+							  sse-swap="counter-updated" hx-swap="innerHTML" hx-target="this">
 							{ fmt.Sprintf("%d", countChecked(data.Checkboxes)) } checked
 						</span>
 					</div>
@@ -56,7 +58,7 @@ templ CheckboxesPageContent(data CheckboxPageData) {
 		@CheckboxesContainer(data.Checkboxes)
 		@GoToTopButton()
 	</div>
-	@CheckboxesScript(data.OriginatorID)
+	@CheckboxesScript("")
 }
 
 templ CheckboxesContainer(checkboxes []CheckboxData) {
@@ -74,7 +76,7 @@ templ CheckboxesContainer(checkboxes []CheckboxData) {
 }
 
 templ CheckboxItem(cb CheckboxData) {
-	<div id={ "checkbox-" + fmt.Sprintf("%d", cb.ID) } sse-swap={ "checkbox-" + fmt.Sprintf("%d", cb.ID) + "-updated" } hx-swap="outerHTML">
+	<div id={ "checkbox-" + fmt.Sprintf("%d", cb.ID) } sse-swap={ "checkbox-" + fmt.Sprintf("%d", cb.ID) + "-updated" } hx-swap="outerHTML" hx-target="this">
 		<label for={ "cb-" + fmt.Sprintf("%d", cb.ID) } class={ "flex items-center gap-1 sm:gap-2 p-2 sm:p-3 rounded-lg border transition-colors duration-200 cursor-pointer group aspect-square justify-center", templ.KV("bg-secondary-900/40 border-secondary-600/30 hover:bg-secondary-700/50 hover:border-primary-600/40", !cb.Checked), templ.KV("bg-primary-600/20 border-primary-500 hover:bg-primary-600/30 hover:border-primary-400", cb.Checked) }>
 			<input
 				type="checkbox"
@@ -106,22 +108,9 @@ templ SingleCheckboxHTML(id int, checked bool) {
 	<span class={ "text-xs transition-colors text-center font-mono leading-tight", templ.KV("text-secondary-400", !checked), templ.KV("text-primary-300", checked) }>{ fmt.Sprintf("%d", id) }</span>
 }
 
-templ CheckboxItemSSE(cb CheckboxData) {
-	<input
-		type="checkbox"
-		id={ "cb-" + fmt.Sprintf("%d", cb.ID) }
-		class="w-4 h-4 accent-primary-600 bg-secondary-800 border-secondary-500 rounded focus:ring-primary-500 focus:ring-1 mb-2 flex-shrink-0"
-		if cb.Checked {
-			checked
-		}
-		hx-post={ "/experiments/checkboxes/toggle/" + fmt.Sprintf("%d", cb.ID) }
-		hx-swap="none"
-	/>
-	<span class={ "text-xs transition-colors text-center font-mono leading-tight", templ.KV("text-secondary-400", !cb.Checked), templ.KV("text-primary-300", cb.Checked) }>{ fmt.Sprintf("%d", cb.ID) }</span>
-}
 
 templ CheckboxItemSSEComplete(cb CheckboxData) {
-	<div id={ "checkbox-" + fmt.Sprintf("%d", cb.ID) } sse-swap={ "checkbox-" + fmt.Sprintf("%d", cb.ID) + "-updated" } hx-swap="outerHTML">
+	<div id={ "checkbox-" + fmt.Sprintf("%d", cb.ID) } sse-swap={ "checkbox-" + fmt.Sprintf("%d", cb.ID) + "-updated" } hx-swap="outerHTML" hx-target="this">
 		<label for={ "cb-" + fmt.Sprintf("%d", cb.ID) } class={ "flex items-center gap-1 sm:gap-2 p-2 sm:p-3 rounded-lg border transition-colors duration-200 cursor-pointer group aspect-square justify-center", templ.KV("bg-secondary-900/40 border-secondary-600/30 hover:bg-secondary-700/50 hover:border-primary-600/40", !cb.Checked), templ.KV("bg-primary-600/20 border-primary-500 hover:bg-primary-600/30 hover:border-primary-400", cb.Checked) }>
 			<input
 				type="checkbox"
@@ -140,65 +129,17 @@ templ CheckboxItemSSEComplete(cb CheckboxData) {
 }
 
 templ CheckboxesScript(originatorID string) {
-	@templ.JSONScript("originatorId", originatorID)
-	@checkboxScriptHandle.Once() {
-		<script type="text/javascript">
-			(function () {
-				var originatorId = JSON.parse(document.getElementById('originatorId').textContent);
-				
-				// Add originator ID to all HTMX requests
+	<script type="text/javascript">
+		(function () {
+			var originatorId = window.originatorId || 'checkbox-' + Date.now() + '-' + Math.floor(Math.random() * 1000000);
+			if (!window.checkboxHandlersSetup) {
+				window.checkboxHandlersSetup = true;
 				document.addEventListener('htmx:configRequest', function(evt) {
 					evt.detail.headers['X-Originator-ID'] = originatorId;
 				});
-				
-				// Update checked counter
-				function updateCheckedCounter() {
-					var checkboxes = document.querySelectorAll('input[type="checkbox"]');
-					var checkedCount = 0;
-					checkboxes.forEach(function(checkbox) {
-						if (checkbox.checked) {
-							checkedCount++;
-						}
-					});
-					var counter = document.getElementById('checked-counter');
-					if (counter) {
-						counter.textContent = checkedCount + ' checked';
-					}
-				}
-				
-				// Initial counter update
-				updateCheckedCounter();
-				
-				// Update counter on checkbox changes
-				document.addEventListener('change', function(e) {
-					if (e.target.type === 'checkbox') {
-						updateCheckedCounter();
-					}
-				});
-				
-				// Update counter after HTMX swaps
-				document.addEventListener('htmx:afterSwap', function() {
-					setTimeout(updateCheckedCounter, 10);
-				});
-				
-				// Go to top button functionality
-				var goToTopBtn = document.getElementById('go-to-top-btn');
-				if (goToTopBtn) {
-					window.addEventListener('scroll', function() {
-						if (window.scrollY > 300) {
-							goToTopBtn.style.opacity = '1';
-							goToTopBtn.style.pointerEvents = 'auto';
-						} else {
-							goToTopBtn.style.opacity = '0';
-							goToTopBtn.style.pointerEvents = 'none';
-						}
-					});
-				}
-				
-				console.log('Checkbox SSE initialized with originator:', originatorId);
-			})();
-		</script>
-	}
+			}
+		})();
+	</script>
 }
 
 templ GoToTopButton() {

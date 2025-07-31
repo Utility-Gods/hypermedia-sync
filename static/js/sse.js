@@ -50,12 +50,6 @@ This extension adds support for Server Sent Events to htmx.  See /www/extensions
           // Try to remove remove an EventSource when elements are removed
           var source = internalData.sseEventSource;
           if (source) {
-            console.log("[SSE] Cleaning up SSE connection:", {
-              element: parent,
-              elementId: parent.id,
-              source: source,
-              reason: "beforeCleanupElement"
-            });
             api.triggerEvent(parent, "htmx:sseClose", {
               source,
               type: "nodeReplaced",
@@ -114,44 +108,23 @@ This extension adds support for Server Sent Events to htmx.  See /www/extensions
       for (var i = 0; i < sseEventNames.length; i++) {
         const sseEventName = sseEventNames[i].trim();
         const listener = function (event) {
-          console.log("[SSE] Event received:", {
-            eventName: sseEventName,
-            targetElement: elt,
-            targetId: elt.id,
-            sourceElement: sourceElement,
-            sourceId: sourceElement.id,
-            eventData: event.data,
-            eventType: event.type
-          });
-
           // If the source is missing then close SSE
           if (maybeCloseSSESource(sourceElement)) {
-            console.log("[SSE] Source closed, skipping event");
             return;
           }
 
           // If the body no longer contains the element, remove the listener
           if (!api.bodyContains(elt)) {
-            console.log("[SSE] Target element no longer in body, removing listener");
             source.removeEventListener(sseEventName, listener);
             return;
           }
 
           // swap the response into the DOM and trigger a notification
           if (!api.triggerEvent(elt, "htmx:sseBeforeMessage", event)) {
-            console.log("[SSE] sseBeforeMessage event prevented swap");
             return;
           }
           
-          console.log("[SSE] About to swap content:", {
-            targetElement: elt,
-            content: event.data.substring(0, 200) + "...",
-            fullContent: event.data
-          });
-          
           swap(elt, event.data);
-          
-          console.log("[SSE] Content swapped successfully");
           api.triggerEvent(elt, "htmx:sseMessage", event);
         };
 
@@ -306,12 +279,6 @@ This extension adds support for Server Sent Events to htmx.  See /www/extensions
    * @param {string} content
    */
   function swap(elt, content) {
-    console.log("[SSE SWAP] Starting swap operation:", {
-      sourceElement: elt,
-      sourceId: elt.id,
-      content: content.substring(0, 200) + "..."
-    });
-
     api.withExtensions(elt, function (extension) {
       content = extension.transformResponse(content, null, elt);
     });
@@ -319,21 +286,7 @@ This extension adds support for Server Sent Events to htmx.  See /www/extensions
     var swapSpec = api.getSwapSpecification(elt);
     var target = api.getTarget(elt);
     
-    console.log("[SSE SWAP] Swap details:", {
-      sourceElement: elt,
-      sourceId: elt.id,
-      targetElement: target,
-      targetId: target.id,
-      swapSpec: swapSpec,
-      swapStyle: swapSpec ? swapSpec.swapStyle : 'unknown'
-    });
-    
     api.swap(target, content, swapSpec);
-    
-    console.log("[SSE SWAP] Swap completed:", {
-      targetElement: target,
-      targetId: target.id
-    });
   }
 
   function hasEventSource(node) {

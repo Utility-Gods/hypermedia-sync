@@ -1,13 +1,16 @@
 package sse
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
 	"sync"
+
+	"hypermedia-sync/internal/templates/layout"
 )
 
-// Hub manages SSE connections and broadcasts
 type Hub struct {
 	connections map[string]*Connection
 	broadcast   chan Event
@@ -47,19 +50,16 @@ func (h *Hub) Run() {
 			h.onlineCount = len(h.connections)
 			onlineCount := h.onlineCount
 			h.connMu.Unlock()
-			
-			// Broadcast online count update to all connections
-			onlineHTML := fmt.Sprintf(`<span class="relative flex h-2 w-2">
-				<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-				<span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-			</span>
-			<span class="text-secondary-50 font-semibold text-xs sm:text-sm">
-				<span class="hidden sm:inline">%d users online</span>
-				<span class="sm:hidden">%d</span>
-			</span>`, onlineCount, onlineCount)
+
+			var buf bytes.Buffer
+			err := layout.OnlineCounter(onlineCount).Render(context.Background(), &buf)
+			if err != nil {
+				fmt.Printf("Error rendering online counter: %v\n", err)
+				return
+			}
 			h.broadcast <- Event{
 				Name: "online-count-updated",
-				Data: onlineHTML,
+				Data: buf.String(),
 			}
 
 		case conn := <-h.unregister:
@@ -69,19 +69,17 @@ func (h *Hub) Run() {
 				h.onlineCount = len(h.connections)
 				onlineCount := h.onlineCount
 				h.connMu.Unlock()
-				
-				// Broadcast online count update to all connections
-				onlineHTML := fmt.Sprintf(`<span class="relative flex h-2 w-2">
-					<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-					<span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-				</span>
-				<span class="text-secondary-50 font-semibold text-xs sm:text-sm">
-					<span class="hidden sm:inline">%d users online</span>
-					<span class="sm:hidden">%d</span>
-				</span>`, onlineCount, onlineCount)
+
+				var buf bytes.Buffer
+				err := layout.OnlineCounter(onlineCount).Render(context.Background(), &buf)
+				if err != nil {
+					fmt.Printf("Error rendering online counter: %v\n", err)
+					h.connMu.Unlock()
+					return
+				}
 				h.broadcast <- Event{
 					Name: "online-count-updated",
-					Data: onlineHTML,
+					Data: buf.String(),
 				}
 			} else {
 				h.connMu.Unlock()
@@ -97,25 +95,25 @@ func (h *Hub) Run() {
 								fmt.Printf("Error broadcasting to connection: %v\n", r)
 							}
 						}()
-						
+
 						select {
 						case <-c.Done:
 							return
 						default:
 						}
-						
+
 						if c.Writer == nil {
 							fmt.Printf("Warning: Writer is nil for connection %s\n", c.ID)
 							return
 						}
-						
+
 						eventData := strings.ReplaceAll(event.Data, "\n", "\ndata: ")
 						_, err := fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", event.Name, eventData)
 						if err != nil {
 							fmt.Printf("Error writing to connection %s: %v\n", c.ID, err)
 							return
 						}
-						
+
 						if flusher, ok := c.Writer.(http.Flusher); ok {
 							flusher.Flush()
 						}
@@ -144,3 +142,4 @@ func (h *Hub) Unregister(conn *Connection) {
 func (h *Hub) Broadcast(event Event) {
 	h.broadcast <- event
 }
+

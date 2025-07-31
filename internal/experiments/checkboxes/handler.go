@@ -101,6 +101,22 @@ func ToggleHandler(hub *sse.Hub) echo.HandlerFunc {
 			ExcludeID: originatorID,
 		})
 
+		// Calculate new total count
+		mu.RLock()
+		totalChecked := 0
+		for _, checked := range checkboxes {
+			if checked {
+				totalChecked++
+			}
+		}
+		mu.RUnlock()
+
+		// Broadcast counter update to all clients (including originator)
+		hub.Broadcast(sse.Event{
+			Name: "counter-updated",
+			Data: fmt.Sprintf("%d checked", totalChecked),
+		})
+
 		// Return updated HTML to originator for immediate feedback
 		var originatorBuilder strings.Builder
 		originatorComponent := experiments.CheckboxItemSSEComplete(cb)

@@ -18,45 +18,7 @@ templ Header(onlineCount int) {
 					</h1>
 				</div>
 				<div class="flex items-center gap-2 sm:gap-6 flex-shrink-0">
-					<div class="flex items-center gap-1 sm:gap-3 px-2 sm:px-5 py-2 sm:py-3 bg-primary-600/15 border border-primary-500/40 rounded-full backdrop-blur-sm" id="online-users-container" sse-swap="online-count-updated" hx-swap="innerHTML">
-						<span class="relative flex h-2 w-2">
-							<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-							<span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-						</span>
-						<span class="text-secondary-50 font-semibold text-xs sm:text-sm">
-							<span class="hidden sm:inline">{ fmt.Sprintf("%d", onlineCount) } users online</span>
-							<span class="sm:hidden">{ fmt.Sprintf("%d", onlineCount) }</span>
-						</span>
-					</div>
-					<a href="https://github.com/Utility-Gods/hypermedia-sync" target="_blank" class="flex items-center gap-1 sm:gap-2 px-2 sm:px-5 py-2 sm:py-3 bg-white/10 border border-white/20 rounded-full text-secondary-200 hover:text-secondary-50 hover:bg-white/15 hover:border-white/30 font-semibold text-xs sm:text-sm transition-all duration-300">
-						@icons.GitHub()
-						<span class="hidden sm:inline">View on GitHub</span>
-					</a>
-				</div>
-			</div>
-		</div>
-	</header>
-}
-
-templ ExperimentHeaderWithTitle(experimentTitle string, onlineCount int) {
-	<header class="sticky top-0 z-50 backdrop-blur-xl bg-secondary-900/95 border-b border-primary-600/30 shadow-lg">
-		<div class="max-w-6xl mx-auto px-4 sm:px-6 py-3">
-			<div class="flex justify-between items-center">
-				<div class="flex-1 min-w-0">
-					<div class="flex flex-col sm:flex-row sm:items-center sm:gap-4">
-						<h1 class="text-lg sm:text-2xl font-bold tracking-tight truncate">
-							<a href="/" class="text-primary-600 hover:text-primary-500 transition-all duration-300">
-								<span class="hidden sm:inline">Hypermedia Sync</span>
-								<span class="sm:hidden">Hypermedia</span>
-							</a>
-						</h1>
-						<div class="text-xl sm:text-3xl font-bold text-secondary-50 underline decoration-primary-600 decoration-2 underline-offset-4">
-							{ experimentTitle }
-						</div>
-					</div>
-				</div>
-				<div class="flex items-center gap-2 sm:gap-6 flex-shrink-0">
-					<div class="flex items-center gap-1 sm:gap-3 px-2 sm:px-5 py-2 sm:py-3 bg-primary-600/15 border border-primary-500/40 rounded-full backdrop-blur-sm" id="online-users-container" sse-swap="online-count-updated" hx-swap="innerHTML">
+					<div class="flex items-center gap-1 sm:gap-3 px-2 sm:px-5 py-2 sm:py-3 bg-primary-600/15 border border-primary-500/40 rounded-full backdrop-blur-sm" id="online-users-container" sse-swap="online-count-updated" hx-swap="innerHTML" hx-target="this">
 						<span class="relative flex h-2 w-2">
 							<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
 							<span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
@@ -84,14 +46,13 @@ templ Hero(title, subtitle string) {
 }
 
 templ OnlineCounter(count int) {
-	<div class="flex items-center gap-1 sm:gap-3 px-2 sm:px-5 py-2 sm:py-3 bg-primary-600/15 border border-primary-500/40 rounded-full backdrop-blur-sm" id="online-users-container" sse-swap="online-count-updated" hx-swap="innerHTML">
-		<span class="relative flex h-2 w-2">
-			<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-			<span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-		</span>
-		<span class="text-secondary-50 font-semibold text-xs sm:text-sm">
-			<span class="hidden sm:inline">{ fmt.Sprintf("%d", count) } users online</span>
-			<span class="sm:hidden">{ fmt.Sprintf("%d", count) }</span>
-		</span>
-	</div>
+	<span class="relative flex h-2 w-2">
+		<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+		<span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+	</span>
+	<span class="text-secondary-50 font-semibold text-xs sm:text-sm">
+		<span class="hidden sm:inline">{ fmt.Sprintf("%d", count) } users online</span>
+		<span class="sm:hidden">{ fmt.Sprintf("%d", count) }</span>
+	</span>
 }
+
