@@ -18,13 +18,13 @@ templ ExperimentsListPage(experiments []Experiment) {
 
 templ ExperimentsListContent(experiments []Experiment) {
 	@layout.Hero("Real-Time Synchronization Experiments", "Demonstrating SSE + HTMX patterns across different technology stacks")
-	<div class="max-w-6xl mx-auto px-8 py-16">
+	<div class="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-16">
 		@ExperimentsGrid(experiments)  
 	</div>
 }
 
 templ ExperimentsGrid(experiments []Experiment) {
-	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
 		for _, exp := range experiments {
 			@ExperimentCard(exp)
 		}
@@ -32,13 +32,13 @@ templ ExperimentsGrid(experiments []Experiment) {
 }
 
 templ ExperimentCard(exp Experiment) {
-	<div class="bg-secondary-800/50 border border-secondary-700 rounded-xl p-6 backdrop-blur-sm hover:bg-secondary-800/70 hover:border-primary-600/50 transition-all duration-300 group">
-		<div class="flex justify-between items-start mb-4">
-			<h3 class="text-xl font-semibold text-secondary-50 group-hover:text-primary-500 transition-colors">{ exp.Name }</h3>
+	<div class="bg-secondary-800/50 border border-secondary-700 rounded-xl p-4 sm:p-6 backdrop-blur-sm hover:bg-secondary-800/70 hover:border-primary-600/50 transition-all duration-300 group">
+		<div class="flex sm:justify-between sm:items-start mb-4 gap-2">
+			<h3 class="text-lg sm:text-xl font-semibold text-secondary-50 group-hover:text-primary-500 transition-colors">{ exp.Name }</h3>
 			@ExperimentStatus(exp.Status)
 		</div>
-		<p class="text-secondary-300 mb-6 leading-relaxed">{ exp.Description }</p>
-		<a href={ templ.SafeURL(exp.Path) } class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg font-medium transition-all duration-200 hover:scale-105">
+		<p class="text-sm sm:text-base text-secondary-300 mb-4 sm:mb-6 leading-relaxed">{ exp.Description }</p>
+		<a href={ templ.SafeURL(exp.Path) } class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg font-medium transition-all duration-200 hover:scale-105 text-sm sm:text-base">
 			Launch Experiment →
 		</a>
 	</div>
@@ -46,13 +46,13 @@ templ ExperimentCard(exp Experiment) {
 
 templ ExperimentStatus(status string) {
 	if status == "Active" {
-		<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-500/20 border border-green-500/40 rounded-full text-green-400 text-sm font-medium">
-			<span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+		<span class="inline-flex items-center gap-1 px-2 py-1 bg-green-500/20 border border-green-500/40 rounded-full text-green-400 text-xs font-medium">
+			<span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
 			{ status }
 		</span>
 	} else {
-		<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-secondary-600/20 border border-secondary-500/40 rounded-full text-secondary-400 text-sm font-medium">
-			<span class="w-2 h-2 bg-secondary-500 rounded-full"></span>
+		<span class="inline-flex items-center gap-1 px-2 py-1 bg-secondary-600/20 border border-secondary-500/40 rounded-full text-secondary-400 text-xs font-medium">
+			<span class="w-1.5 h-1.5 bg-secondary-500 rounded-full"></span>
 			{ status }
 		</span>
 	}

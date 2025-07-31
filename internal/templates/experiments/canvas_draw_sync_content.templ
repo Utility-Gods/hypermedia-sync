@@ -49,8 +49,11 @@ templ CanvasDrawSyncPageFull(data CanvasDrawSyncPageData) {
 }
 
 templ CanvasDrawSyncPageContent(data CanvasDrawSyncPageData) {
-	<div hx-ext="sse" sse-connect={ "/events?originator=" + data.OriginatorID } class="flex-1 flex flex-col">
-		@layout.ExperimentHeader("Canvas", "Collaborative Real-Time Drawing")
+	<div class="flex-1 flex flex-col">
+		<div class="text-center py-4 border-b border-secondary-700">
+			<h2 class="text-xl sm:text-2xl font-bold text-secondary-50">Canvas</h2>
+			<p class="text-sm text-secondary-400">Collaborative Real-Time Drawing</p>
+		</div>
 		@CanvasDrawSyncToolbar(data.OriginatorID)
 		@CanvasDrawSyncCanvas(data.Canvas)
 		@CanvasDrawSyncScript(data.OriginatorID)
@@ -58,12 +61,12 @@ templ CanvasDrawSyncPageContent(data CanvasDrawSyncPageData) {
 }
 
 templ CanvasDrawSyncToolbar(originatorID string) {
-	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
-		<div class="bg-secondary-800/30 rounded-xl border border-secondary-700 p-4">
-			<div class="flex flex-wrap items-center gap-4">
+	<div class="px-4 mb-4">
+		<div class="bg-secondary-800/30 rounded-xl border border-secondary-700 p-3 sm:p-4">
+			<div class="flex flex-wrap items-center gap-2 sm:gap-4">
 				<div class="flex items-center gap-2">
-					<label class="text-secondary-300 text-sm font-medium">Tool:</label>
-					<select id="tool-select" class="bg-secondary-700 border border-secondary-600 rounded-lg px-3 py-1 text-secondary-100 text-sm">
+					<label class="text-secondary-200 text-sm font-medium whitespace-nowrap">Tool:</label>
+					<select id="tool-select" class="bg-secondary-700 border border-secondary-600 rounded-lg px-3 py-2 text-secondary-100 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
 						<option value="pen">Pen</option>
 						<option value="rect">Rectangle</option>
 						<option value="circle">Circle</option>
@@ -72,14 +75,14 @@ templ CanvasDrawSyncToolbar(originatorID string) {
 				</div>
 				
 				<div class="flex items-center gap-2">
-					<label class="text-secondary-300 text-sm font-medium">Color:</label>
-					<input type="color" id="color-picker" value="#f54a00" class="w-8 h-8 rounded border border-secondary-600 bg-secondary-700"/>
+					<label class="text-secondary-200 text-sm font-medium whitespace-nowrap">Color:</label>
+					<input type="color" id="color-picker" value="#f54a00" class="w-10 h-10 rounded-lg border border-secondary-600 bg-secondary-700 cursor-pointer"/>
 				</div>
 				
-				<div class="flex items-center gap-2">
-					<label class="text-secondary-300 text-sm font-medium">Size:</label>
-					<input type="range" id="brush-size" min="1" max="20" value="3" class="w-20"/>
-					<span id="size-display" class="text-secondary-300 text-sm w-6">3</span>
+				<div class="flex items-center gap-3">
+					<label class="text-secondary-200 text-sm font-medium whitespace-nowrap">Size:</label>
+					<input type="range" id="brush-size" min="1" max="20" value="3" class="w-20 accent-primary-600"/>
+					<span id="size-display" class="text-secondary-200 text-sm font-mono min-w-[1rem] text-center">3</span>
 				</div>
 				
 				<button 
@@ -99,9 +102,9 @@ templ CanvasDrawSyncToolbar(originatorID string) {
 }
 
 templ CanvasDrawSyncCanvas(canvas CanvasState) {
-	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-		<div class="bg-secondary-800/30 rounded-xl border border-secondary-700 p-6">
-			<div id="canvas-container" class="flex justify-center" sse-swap="canvas-cleared" hx-swap="innerHTML">
+	<div class="flex-1 flex flex-col px-4 pb-4">
+		<div class="flex-1 bg-secondary-800/30 rounded-xl border border-secondary-700 p-4 sm:p-6 overflow-auto">
+			<div id="canvas-container" class="flex justify-center h-full items-center" sse-swap="canvas-cleared" hx-swap="innerHTML">
 				@CanvasSVG(canvas)
 			</div>
 		</div>
@@ -113,9 +116,10 @@ templ CanvasSVG(canvas CanvasState) {
 		id="canvas-svg" 
 		width={ fmt.Sprintf("%d", canvas.Width) } 
 		height={ fmt.Sprintf("%d", canvas.Height) } 
-		class="border border-secondary-600 bg-white rounded-lg cursor-crosshair"
+		class="border border-secondary-600 bg-white rounded-lg cursor-crosshair max-w-full max-h-full"
 		sse-swap="canvas-element-added"
 		hx-swap="beforeend"
+		viewBox={ fmt.Sprintf("0 0 %d %d", canvas.Width, canvas.Height) }
 	>
 		for _, element := range canvas.Elements {
 			@DrawingElementSVG(element)

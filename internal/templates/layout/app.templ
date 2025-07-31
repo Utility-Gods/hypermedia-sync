@@ -113,6 +113,31 @@ templ AppWithSSE(title string, onlineCount int, originatorID string) {
 	</html>
 }
 
+templ ExperimentAppWithSSE(title string, experimentTitle string, onlineCount int, originatorID string) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			@Head(title)
+		</head>
+		<body class="min-h-screen flex flex-col">
+			<div hx-ext="sse" sse-connect={ "/events?originator=" + originatorID } class="flex-1 flex flex-col">
+				@ExperimentHeaderWithTitle(experimentTitle, onlineCount)
+				<div class="flex-1">
+					{ children... }
+				</div>
+			</div>
+			<footer class="mt-auto border-t border-secondary-700 bg-secondary-900/50 backdrop-blur-sm">
+				<div class="max-w-6xl mx-auto px-8 py-6 text-center">
+					<p class="text-secondary-300 text-sm">
+						Built with HTMX + Golang • Made by 
+						<a href="https://utilitygods.com" target="_blank" class="text-primary-600 hover:text-primary-500 font-medium transition-colors">UtilityGods</a>
+					</p>
+				</div>
+			</footer>
+		</body>
+	</html>
+}
+
 
 templ Breadcrumb(items []BreadcrumbItem) {
 	<nav class="flex items-center gap-2 text-sm bg-gray-800 rounded-lg px-4 py-3 border border-gray-600 mb-4">
@@ -130,14 +155,14 @@ templ Breadcrumb(items []BreadcrumbItem) {
 }
 
 templ ExperimentHeader(title, description string) {
-	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-		<div class="flex items-center justify-between">
-			<div class="flex items-center gap-4">
-				<h1 class="text-2xl font-bold text-secondary-50">{ title }</h1>
-				<span class="text-secondary-500">•</span>
-				<p class="text-secondary-400">{ description }</p>
+	<div class="hidden sm:block max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+		<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+			<div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+				<h1 class="text-xl sm:text-2xl font-bold text-secondary-50">{ title }</h1>
+				<span class="hidden sm:inline text-secondary-500">•</span>
+				<p class="text-sm sm:text-base text-secondary-400">{ description }</p>
 			</div>
-			<a href="/" class="text-sm text-secondary-400 hover:text-secondary-300 underline hover:no-underline transition-all px-3 py-1 rounded">
+			<a href="/" class="text-sm text-secondary-400 hover:text-secondary-300 underline hover:no-underline transition-all px-3 py-1 rounded self-start sm:self-auto">
 				← Back to Experiments
 			</a>
 		</div>

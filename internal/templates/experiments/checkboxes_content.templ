@@ -25,16 +25,21 @@ templ CheckboxesPageFull(data CheckboxPageData) {
 }
 
 templ CheckboxesPageContent(data CheckboxPageData) {
-	@layout.ExperimentHeader("10,000 Checkboxes", "Real-Time Hypermedia Synchronization")
-	@CheckboxesContainer(data.Checkboxes)
+	<div class="flex-1 flex flex-col">
+		<div class="text-center py-4 border-b border-secondary-700">
+			<h2 class="text-xl sm:text-2xl font-bold text-secondary-50">10,000 Checkboxes</h2>
+			<p class="text-sm text-secondary-400">Real-Time Hypermedia Synchronization</p>
+		</div>
+		@CheckboxesContainer(data.Checkboxes)
+	</div>
 	@CheckboxesScript(data.OriginatorID)
 }
 
 templ CheckboxesContainer(checkboxes []CheckboxData) {
-	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-		<div class="bg-secondary-800/30 rounded-xl border border-secondary-700 h-[60vh] overflow-auto">
-			<div class="p-6">
-				<div class="flex flex-wrap gap-3" id="team-section">
+	<div class="flex-1 flex flex-col p-4">
+		<div class="flex-1 bg-secondary-800/30 rounded-xl border border-secondary-700 overflow-auto">
+			<div class="p-4 h-full">
+				<div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-3" id="team-section">
 					for _, cb := range checkboxes {
 						@CheckboxItem(cb)
 					}
@@ -46,11 +51,11 @@ templ CheckboxesContainer(checkboxes []CheckboxData) {
 
 templ CheckboxItem(cb CheckboxData) {
 	<div id={ "checkbox-" + fmt.Sprintf("%d", cb.ID) } sse-swap={ "checkbox-" + fmt.Sprintf("%d", cb.ID) + "-updated" } hx-swap="outerHTML">
-		<label for={ "cb-" + fmt.Sprintf("%d", cb.ID) } class={ "flex items-center gap-2 p-3 rounded-lg border transition-colors duration-200 cursor-pointer group min-w-[5rem]", templ.KV("bg-secondary-900/40 border-secondary-600/30 hover:bg-secondary-700/50 hover:border-primary-600/40", !cb.Checked), templ.KV("bg-primary-600/20 border-primary-500 hover:bg-primary-600/30 hover:border-primary-400", cb.Checked) }>
+		<label for={ "cb-" + fmt.Sprintf("%d", cb.ID) } class={ "flex items-center gap-1 sm:gap-2 p-2 sm:p-3 rounded-lg border transition-colors duration-200 cursor-pointer group aspect-square justify-center", templ.KV("bg-secondary-900/40 border-secondary-600/30 hover:bg-secondary-700/50 hover:border-primary-600/40", !cb.Checked), templ.KV("bg-primary-600/20 border-primary-500 hover:bg-primary-600/30 hover:border-primary-400", cb.Checked) }>
 			<input
 				type="checkbox"
 				id={ "cb-" + fmt.Sprintf("%d", cb.ID) }
-				class="w-4 h-4 accent-primary-600 bg-secondary-800 border-secondary-500 rounded focus:ring-primary-500 focus:ring-1 flex-shrink-0"
+				class="w-5 h-5 sm:w-6 sm:h-6 accent-primary-600 bg-secondary-800 border-secondary-500 rounded focus:ring-primary-500 focus:ring-1 flex-shrink-0"
 				if cb.Checked {
 					checked
 				}
@@ -93,11 +98,11 @@ templ CheckboxItemSSE(cb CheckboxData) {
 
 templ CheckboxItemSSEComplete(cb CheckboxData) {
 	<div id={ "checkbox-" + fmt.Sprintf("%d", cb.ID) } sse-swap={ "checkbox-" + fmt.Sprintf("%d", cb.ID) + "-updated" } hx-swap="outerHTML">
-		<label for={ "cb-" + fmt.Sprintf("%d", cb.ID) } class={ "flex items-center gap-2 p-3 rounded-lg border transition-colors duration-200 cursor-pointer group min-w-[5rem]", templ.KV("bg-secondary-900/40 border-secondary-600/30 hover:bg-secondary-700/50 hover:border-primary-600/40", !cb.Checked), templ.KV("bg-primary-600/20 border-primary-500 hover:bg-primary-600/30 hover:border-primary-400", cb.Checked) }>
+		<label for={ "cb-" + fmt.Sprintf("%d", cb.ID) } class={ "flex items-center gap-1 sm:gap-2 p-2 sm:p-3 rounded-lg border transition-colors duration-200 cursor-pointer group aspect-square justify-center", templ.KV("bg-secondary-900/40 border-secondary-600/30 hover:bg-secondary-700/50 hover:border-primary-600/40", !cb.Checked), templ.KV("bg-primary-600/20 border-primary-500 hover:bg-primary-600/30 hover:border-primary-400", cb.Checked) }>
 			<input
 				type="checkbox"
 				id={ "cb-" + fmt.Sprintf("%d", cb.ID) }
-				class="w-4 h-4 accent-primary-600 bg-secondary-800 border-secondary-500 rounded focus:ring-primary-500 focus:ring-1 flex-shrink-0"
+				class="w-5 h-5 sm:w-6 sm:h-6 accent-primary-600 bg-secondary-800 border-secondary-500 rounded focus:ring-primary-500 focus:ring-1 flex-shrink-0"
 				if cb.Checked {
 					checked
 				}

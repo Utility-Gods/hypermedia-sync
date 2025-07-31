@@ -49,7 +49,14 @@ func (h *Hub) Run() {
 			h.connMu.Unlock()
 			
 			// Broadcast online count update to all connections
-			onlineHTML := fmt.Sprintf(`<span class="online-count">%d users online</span>`, onlineCount)
+			onlineHTML := fmt.Sprintf(`<span class="relative flex h-2 w-2">
+				<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+				<span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+			</span>
+			<span class="text-secondary-50 font-semibold text-xs sm:text-sm">
+				<span class="hidden sm:inline">%d users online</span>
+				<span class="sm:hidden">%d</span>
+			</span>`, onlineCount, onlineCount)
 			h.broadcast <- Event{
 				Name: "online-count-updated",
 				Data: onlineHTML,
@@ -64,7 +71,14 @@ func (h *Hub) Run() {
 				h.connMu.Unlock()
 				
 				// Broadcast online count update to all connections
-				onlineHTML := fmt.Sprintf(`<span class="online-count">%d users online</span>`, onlineCount)
+				onlineHTML := fmt.Sprintf(`<span class="relative flex h-2 w-2">
+					<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+					<span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+				</span>
+				<span class="text-secondary-50 font-semibold text-xs sm:text-sm">
+					<span class="hidden sm:inline">%d users online</span>
+					<span class="sm:hidden">%d</span>
+				</span>`, onlineCount, onlineCount)
 				h.broadcast <- Event{
 					Name: "online-count-updated",
 					Data: onlineHTML,

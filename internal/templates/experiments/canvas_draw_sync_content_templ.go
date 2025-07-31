@@ -118,24 +118,7 @@ func CanvasDrawSyncPageContent(data CanvasDrawSyncPageData) templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div hx-ext=\"sse\" sse-connect=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var4 string
-		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs("/events?originator=" + data.OriginatorID)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 52, Col: 74}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" class=\"flex-1 flex flex-col\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = layout.ExperimentHeader("Canvas", "Collaborative Real-Time Drawing").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex-1 flex flex-col\"><div class=\"text-center py-4 border-b border-secondary-700\"><h2 class=\"text-xl sm:text-2xl font-bold text-secondary-50\">Canvas</h2><p class=\"text-sm text-secondary-400\">Collaborative Real-Time Drawing</p></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -151,7 +134,7 @@ func CanvasDrawSyncPageContent(data CanvasDrawSyncPageData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -175,12 +158,12 @@ func CanvasDrawSyncToolbar(originatorID string) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var5 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var5 == nil {
-			templ_7745c5c3_Var5 = templ.NopComponent
+		templ_7745c5c3_Var4 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var4 == nil {
+			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4\"><div class=\"bg-secondary-800/30 rounded-xl border border-secondary-700 p-4\"><div class=\"flex flex-wrap items-center gap-4\"><div class=\"flex items-center gap-2\"><label class=\"text-secondary-300 text-sm font-medium\">Tool:</label> <select id=\"tool-select\" class=\"bg-secondary-700 border border-secondary-600 rounded-lg px-3 py-1 text-secondary-100 text-sm\"><option value=\"pen\">Pen</option> <option value=\"rect\">Rectangle</option> <option value=\"circle\">Circle</option> <option value=\"text\">Text</option></select></div><div class=\"flex items-center gap-2\"><label class=\"text-secondary-300 text-sm font-medium\">Color:</label> <input type=\"color\" id=\"color-picker\" value=\"#f54a00\" class=\"w-8 h-8 rounded border border-secondary-600 bg-secondary-700\"></div><div class=\"flex items-center gap-2\"><label class=\"text-secondary-300 text-sm font-medium\">Size:</label> <input type=\"range\" id=\"brush-size\" min=\"1\" max=\"20\" value=\"3\" class=\"w-20\"> <span id=\"size-display\" class=\"text-secondary-300 text-sm w-6\">3</span></div><button id=\"clear-canvas-btn\" class=\"px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors\" hx-post=\"/experiments/canvas-draw-sync/clear\" hx-target=\"#canvas-container\" hx-swap=\"innerHTML\">Clear Canvas</button><div id=\"status-message\" class=\"text-secondary-400 text-sm\"></div></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"px-4 mb-4\"><div class=\"bg-secondary-800/30 rounded-xl border border-secondary-700 p-3 sm:p-4\"><div class=\"flex flex-wrap items-center gap-2 sm:gap-4\"><div class=\"flex items-center gap-2\"><label class=\"text-secondary-200 text-sm font-medium whitespace-nowrap\">Tool:</label> <select id=\"tool-select\" class=\"bg-secondary-700 border border-secondary-600 rounded-lg px-3 py-2 text-secondary-100 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500\"><option value=\"pen\">Pen</option> <option value=\"rect\">Rectangle</option> <option value=\"circle\">Circle</option> <option value=\"text\">Text</option></select></div><div class=\"flex items-center gap-2\"><label class=\"text-secondary-200 text-sm font-medium whitespace-nowrap\">Color:</label> <input type=\"color\" id=\"color-picker\" value=\"#f54a00\" class=\"w-10 h-10 rounded-lg border border-secondary-600 bg-secondary-700 cursor-pointer\"></div><div class=\"flex items-center gap-3\"><label class=\"text-secondary-200 text-sm font-medium whitespace-nowrap\">Size:</label> <input type=\"range\" id=\"brush-size\" min=\"1\" max=\"20\" value=\"3\" class=\"w-20 accent-primary-600\"> <span id=\"size-display\" class=\"text-secondary-200 text-sm font-mono min-w-[1rem] text-center\">3</span></div><button id=\"clear-canvas-btn\" class=\"px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors\" hx-post=\"/experiments/canvas-draw-sync/clear\" hx-target=\"#canvas-container\" hx-swap=\"innerHTML\">Clear Canvas</button><div id=\"status-message\" class=\"text-secondary-400 text-sm\"></div></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -204,12 +187,12 @@ func CanvasDrawSyncCanvas(canvas CanvasState) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var6 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var6 == nil {
-			templ_7745c5c3_Var6 = templ.NopComponent
+		templ_7745c5c3_Var5 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var5 == nil {
+			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8\"><div class=\"bg-secondary-800/30 rounded-xl border border-secondary-700 p-6\"><div id=\"canvas-container\" class=\"flex justify-center\" sse-swap=\"canvas-cleared\" hx-swap=\"innerHTML\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"flex-1 flex flex-col px-4 pb-4\"><div class=\"flex-1 bg-secondary-800/30 rounded-xl border border-secondary-700 p-4 sm:p-6 overflow-auto\"><div id=\"canvas-container\" class=\"flex justify-center h-full items-center\" sse-swap=\"canvas-cleared\" hx-swap=\"innerHTML\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -217,7 +200,7 @@ func CanvasDrawSyncCanvas(canvas CanvasState) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -241,38 +224,51 @@ func CanvasSVG(canvas CanvasState) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var7 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var7 == nil {
-			templ_7745c5c3_Var7 = templ.NopComponent
+		templ_7745c5c3_Var6 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var6 == nil {
+			templ_7745c5c3_Var6 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<svg id=\"canvas-svg\" width=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<svg id=\"canvas-svg\" width=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var7 string
+		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", canvas.Width))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 117, Col: 41}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" height=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
-		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", canvas.Width))
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", canvas.Height))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 114, Col: 41}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 118, Col: 43}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" height=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" class=\"border border-secondary-600 bg-white rounded-lg cursor-crosshair max-w-full max-h-full\" sse-swap=\"canvas-element-added\" hx-swap=\"beforeend\" viewBox=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var9 string
-		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", canvas.Height))
+		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("0 0 %d %d", canvas.Width, canvas.Height))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 115, Col: 43}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 122, Col: 65}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" class=\"border border-secondary-600 bg-white rounded-lg cursor-crosshair\" sse-swap=\"canvas-element-added\" hx-swap=\"beforeend\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -320,7 +316,7 @@ func DrawingElementSVG(element DrawingElement) templ.Component {
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(element.Data)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 129, Col: 25}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 133, Col: 25}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -333,7 +329,7 @@ func DrawingElementSVG(element DrawingElement) templ.Component {
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(element.Color)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 129, Col: 50}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 133, Col: 50}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -346,7 +342,7 @@ func DrawingElementSVG(element DrawingElement) templ.Component {
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(element.BrushSize)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 129, Col: 85}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 133, Col: 85}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -364,7 +360,7 @@ func DrawingElementSVG(element DrawingElement) templ.Component {
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(getAttribute(element.Data, "x"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 131, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 135, Col: 44}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -377,7 +373,7 @@ func DrawingElementSVG(element DrawingElement) templ.Component {
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(getAttribute(element.Data, "y"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 131, Col: 82}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 135, Col: 82}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -390,7 +386,7 @@ func DrawingElementSVG(element DrawingElement) templ.Component {
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(getAttribute(element.Data, "width"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 131, Col: 128}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 135, Col: 128}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
@@ -403,7 +399,7 @@ func DrawingElementSVG(element DrawingElement) templ.Component {
 			var templ_7745c5c3_Var17 string
 			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(getAttribute(element.Data, "height"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 131, Col: 176}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 135, Col: 176}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
@@ -416,7 +412,7 @@ func DrawingElementSVG(element DrawingElement) templ.Component {
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(element.Color)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 131, Col: 199}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 135, Col: 199}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
@@ -434,7 +430,7 @@ func DrawingElementSVG(element DrawingElement) templ.Component {
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(getAttribute(element.Data, "cx"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 133, Col: 48}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 137, Col: 48}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -447,7 +443,7 @@ func DrawingElementSVG(element DrawingElement) templ.Component {
 			var templ_7745c5c3_Var20 string
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(getAttribute(element.Data, "cy"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 133, Col: 88}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 137, Col: 88}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 			if templ_7745c5c3_Err != nil {
@@ -460,7 +456,7 @@ func DrawingElementSVG(element DrawingElement) templ.Component {
 			var templ_7745c5c3_Var21 string
 			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(getAttribute(element.Data, "r"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 133, Col: 126}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 137, Col: 126}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 			if templ_7745c5c3_Err != nil {
@@ -473,7 +469,7 @@ func DrawingElementSVG(element DrawingElement) templ.Component {
 			var templ_7745c5c3_Var22 string
 			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(element.Color)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 133, Col: 149}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 137, Col: 149}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 			if templ_7745c5c3_Err != nil {
@@ -491,7 +487,7 @@ func DrawingElementSVG(element DrawingElement) templ.Component {
 			var templ_7745c5c3_Var23 string
 			templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(getAttribute(element.Data, "x"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 135, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 139, Col: 44}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 			if templ_7745c5c3_Err != nil {
@@ -504,7 +500,7 @@ func DrawingElementSVG(element DrawingElement) templ.Component {
 			var templ_7745c5c3_Var24 string
 			templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(getAttribute(element.Data, "y"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 135, Col: 82}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 139, Col: 82}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 			if templ_7745c5c3_Err != nil {
@@ -517,7 +513,7 @@ func DrawingElementSVG(element DrawingElement) templ.Component {
 			var templ_7745c5c3_Var25 string
 			templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(element.Color)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 135, Col: 105}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 139, Col: 105}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 			if templ_7745c5c3_Err != nil {
@@ -530,7 +526,7 @@ func DrawingElementSVG(element DrawingElement) templ.Component {
 			var templ_7745c5c3_Var26 string
 			templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(getAttribute(element.Data, "text"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 135, Col: 191}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/templates/experiments/canvas_draw_sync_content.templ`, Line: 139, Col: 191}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 			if templ_7745c5c3_Err != nil {
