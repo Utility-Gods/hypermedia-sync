@@ -104,7 +104,7 @@ templ CanvasDrawSyncToolbar(originatorID string) {
 templ CanvasDrawSyncCanvas(canvas CanvasState) {
 	<div class="flex-1 flex flex-col px-4 pb-4">
 		<div class="flex-1 bg-secondary-800/30 rounded-xl border border-secondary-700 p-4 sm:p-6 overflow-auto">
-			<div id="canvas-container" class="flex justify-center h-full items-center" sse-swap="canvas-cleared" hx-swap="innerHTML">
+			<div id="canvas-container" class="flex justify-center h-full items-center w-full" sse-swap="canvas-cleared" hx-swap="innerHTML">
 				@CanvasSVG(canvas)
 			</div>
 		</div>
@@ -116,10 +116,11 @@ templ CanvasSVG(canvas CanvasState) {
 		id="canvas-svg" 
 		width={ fmt.Sprintf("%d", canvas.Width) } 
 		height={ fmt.Sprintf("%d", canvas.Height) } 
-		class="border border-secondary-600 bg-white rounded-lg cursor-crosshair max-w-full max-h-full"
+		class="border border-secondary-600 bg-white rounded-lg cursor-crosshair w-full h-full"
 		sse-swap="canvas-element-added"
 		hx-swap="beforeend"
 		viewBox={ fmt.Sprintf("0 0 %d %d", canvas.Width, canvas.Height) }
+		preserveAspectRatio="xMidYMid meet"
 	>
 		for _, element := range canvas.Elements {
 			@DrawingElementSVG(element)
