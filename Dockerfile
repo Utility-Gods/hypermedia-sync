@@ -36,12 +36,15 @@ COPY --from=builder /app/main .
 # Copy static files from builder stage
 COPY --from=builder /app/static ./static
 
+# Set default port
+ENV PORT=8080
+
 # Expose port
 EXPOSE 8080
 
-# Health check - test the app inside its own container
+# Health check - uses PORT env var to check correct port
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD wget --no-verbose --tries=1 -O /dev/null http://127.0.0.1:8090/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:${PORT:-8080}/health || exit 1
 
 # Run the application
 CMD ["./main"]
