@@ -36,6 +36,10 @@ COPY --from=builder /app/main .
 # Copy static files from builder stage
 COPY --from=builder /app/static ./static
 
+# Copy health check script
+COPY healthcheck.sh /healthcheck.sh
+RUN chmod +x /healthcheck.sh
+
 # Set default port
 ENV PORT=8080
 
@@ -44,7 +48,7 @@ EXPOSE 8080
 
 # Health check - uses PORT env var to check correct port
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:${PORT:-8080}/health || exit 1
+  CMD /healthcheck.sh
 
 # Run the application
 CMD ["./main"]
